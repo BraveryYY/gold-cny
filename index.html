@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151512">
+  <meta name="description" content="根据现货黄金美元报价与美元兑人民币汇率，换算人民币每克参考金价。">
+  <title>黄金换算 · 国际金价转人民币</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+  <script src="./history.js" defer></script>
+  <script src="./guide.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="shell masthead-inner">
+      <a class="brand" href="./" aria-label="黄金换算首页">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        黄金换算
+      </a>
+      <nav class="header-nav" aria-label="页面导航">
+        <a class="header-link" href="#history">金价走势 <span aria-hidden="true">↘</span></a>
+        <a class="header-link" href="#guide">行情指南 <span aria-hidden="true">↘</span></a>
+        <a class="header-link" href="#method">换算依据 <span aria-hidden="true">↘</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="page-title">
+      <div>
+        <h1>国际金价换算</h1>
+        <p>将国际现货黄金报价换算成人民币每克价格</p>
+      </div>
+      <button class="refresh" type="button" id="refresh">
+        <span class="refresh-icon" aria-hidden="true">↻</span>
+        <span id="refresh-label">刷新行情</span>
+      </button>
+    </div>
+
+    <section class="quote" aria-labelledby="quote-heading">
+      <div class="quote-art" aria-hidden="true"></div>
+      <div class="quote-content">
+        <h2 id="quote-heading">人民币参考金价</h2>
+        <div class="quote-value" aria-live="polite" aria-atomic="true">
+          <span class="currency" aria-hidden="true">¥</span>
+          <output id="price-per-gram" for="spot rate">900.22</output>
+          <span class="quote-unit">元 / 克</span>
+        </div>
+        <div class="quote-meta">
+          <span class="status-dot" id="status-dot" aria-hidden="true"></span>
+          <span id="quote-status" role="status">示例数据</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="tools-grid">
+      <section class="panel inputs-panel" aria-labelledby="input-heading">
+        <div class="panel-heading">
+          <h2 id="input-heading">换算参数</h2>
+          <span>可手动修改</span>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label for="spot">国际现货黄金 <span class="ticker">XAU/USD</span></label>
+            <div class="input-box">
+              <input id="spot" value="4000" type="text" inputmode="decimal" autocomplete="off" aria-describedby="spot-unit spot-source" spellcheck="false">
+              <span id="spot-unit">美元 / 金衡盎司</span>
+            </div>
+            <p class="source" id="spot-source">示例报价</p>
+          </div>
+          <div class="field">
+            <label for="rate">美元兑人民币 <span class="ticker">USD/CNY</span></label>
+            <div class="input-box">
+              <input id="rate" value="7.00" type="text" inputmode="decimal" autocomplete="off" aria-describedby="rate-unit rate-source" spellcheck="false">
+              <span id="rate-unit">元 / 美元</span>
+            </div>
+            <p class="source" id="rate-source">示例汇率</p>
+          </div>
+        </div>
+        <p class="refresh-note" id="refresh-note" role="status" hidden></p>
+      </section>
+
+      <section class="panel weight-panel" aria-labelledby="weight-heading">
+        <div class="panel-heading">
+          <h2 id="weight-heading">按克重估算</h2>
+        </div>
+        <div class="weight-form">
+          <div class="input-box weight-input">
+            <input id="weight" value="1" type="text" inputmode="decimal" autocomplete="off" aria-label="黄金克重" aria-describedby="weight-unit weight-error" spellcheck="false">
+            <span id="weight-unit">克</span>
+          </div>
+          <div class="presets" role="group" aria-label="常用克重">
+            <button type="button" data-weight="1" aria-pressed="true">1 克</button>
+            <button type="button" data-weight="10" aria-pressed="false">10 克</button>
+            <button type="button" data-weight="100" aria-pressed="false">100 克</button>
+          </div>
+        </div>
+        <p class="source error" id="weight-error" hidden>请输入大于 0 的克重</p>
+        <div class="weight-result">
+          <span>参考总价</span>
+          <output id="total" for="spot rate weight">¥900.22</output>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel history-panel" id="history" aria-labelledby="history-heading">
+      <div class="history-header">
+        <div>
+          <h2 id="history-heading">近 30 天人民币金价</h2>
+          <p class="history-range" id="history-range" aria-live="polite">日线参考价</p>
+        </div>
+        <div class="presets history-ranges" role="group" aria-label="走势图时间区间">
+          <button type="button" data-history-days="7" aria-pressed="false">7 天</button>
+          <button type="button" data-history-days="30" aria-pressed="true">30 天</button>
+          <button type="button" data-history-days="90" aria-pressed="false">90 天</button>
+          <button type="button" data-history-days="180" aria-pressed="false">180 天</button>
+        </div>
+      </div>
+      <div class="history-message" id="history-message">
+        <p id="history-status" role="status">正在加载历史金价…</p>
+        <button class="refresh" id="history-retry" type="button" hidden>重试</button>
+      </div>
+      <dl class="history-stats" id="history-stats" aria-label="区间统计" hidden>
+        <div>
+          <dt>最高价</dt>
+          <dd><strong id="history-high"></strong> <span>元 / 克</span><time id="history-high-date"></time></dd>
+        </div>
+        <div>
+          <dt>最低价</dt>
+          <dd><strong id="history-low"></strong> <span>元 / 克</span><time id="history-low-date"></time></dd>
+        </div>
+        <div>
+          <dt>区间涨跌幅</dt>
+          <dd><strong id="history-change"></strong><small id="history-change-dates"></small></dd>
+        </div>
+      </dl>
+      <figure class="history-figure" id="history-figure" hidden>
+        <div class="history-figure-head">
+          <div class="history-axis-unit">元 / 克</div>
+          <div class="history-reading">
+            <time id="history-date"></time>
+            <strong id="history-price"></strong> <span>元 / 克</span>
+          </div>
+        </div>
+        <canvas id="history-chart" role="img" aria-label="人民币参考金价折线图，标有最高与最低价日期，具体数值见每日数据表"></canvas>
+      </figure>
+      <p class="history-source">
+        金价日收盘（UTC）<a href="https://standardbullion.com/gold-price-api" target="_blank" rel="noopener noreferrer">Data by Standard Bullion</a>
+        <span> · </span>美元兑人民币日度参考汇率 <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter</a>。
+        休市日可能沿用上一报价。缺少同日金价或汇率的日期不绘制。区间涨跌幅按首末有效日收盘价计算。
+      </p>
+      <details class="history-details" id="history-details" hidden>
+        <summary>查看每日数据</summary>
+        <table>
+          <thead><tr><th scope="col">日期</th><th scope="col">参考金价（元 / 克）</th></tr></thead>
+          <tbody id="history-rows"></tbody>
+        </table>
+      </details>
+    </section>
+
+    <section class="panel guide" id="guide" aria-labelledby="guide-heading">
+      <h2 id="guide-heading">黄金行情观察指南</h2>
+      <p class="guide-intro">先判断美元金价受什么推动，再看美元兑人民币汇率会放大还是抵消这段行情。</p>
+
+      <section class="guide-section" aria-labelledby="drivers-heading">
+        <h3 id="drivers-heading">黄金价格受哪些因素影响</h3>
+        <div class="driver-grid">
+          <article class="driver">
+            <h4>美联储与实际利率</h4>
+            <p>美国实际利率上升时，持有无息黄金的机会成本通常提高，美元金价可能承压。实际利率下降时，黄金相对更有吸引力。可用美国 10 年期通胀保值债券收益率观察这一变化。</p>
+            <div class="guide-links"><a href="https://fred.stlouisfed.org/series/DFII10" target="_blank" rel="noopener noreferrer">美国 10 年期实际收益率</a><a href="https://www.chicagofed.org/publications/chicago-fed-letter/2021/464" target="_blank" rel="noopener noreferrer">芝加哥联储研究</a></div>
+          </article>
+          <article class="driver">
+            <h4>美元与人民币汇率</h4>
+            <p>广义美元走强通常给美元金价带来压力。美元兑人民币汇率上升时，同一美元金价折算出的人民币每克价格会提高。例如美元金价涨 2%、USD/CNY 跌 1%，人民币折算价约涨 0.98%。</p>
+            <div class="guide-links"><a href="https://fred.stlouisfed.org/series/DTWEXBGS" target="_blank" rel="noopener noreferrer">广义美元指数</a><a href="https://fred.stlouisfed.org/series/DEXCHUS" target="_blank" rel="noopener noreferrer">USD/CNY</a></div>
+          </article>
+          <article class="driver">
+            <h4>避险与流动性</h4>
+            <p>地缘冲突或金融压力可能提高避险需求。市场急需现金时，黄金也可能被抛售以补足保证金。碰到突发事件，先看黄金、美元与实际利率的反应，再看下一交易日是否延续。</p>
+            <div class="guide-links"><a href="https://www.gold.org/goldhub/tools/gold-return-attribution-model" target="_blank" rel="noopener noreferrer">世界黄金协会归因模型</a><a href="https://www.gold.org/goldhub/gold-focus/2026/04/you-asked-we-answered-has-golds-performance-structurally-changed" target="_blank" rel="noopener noreferrer">避险与流动性分析</a></div>
+          </article>
+          <article class="driver">
+            <h4>央行、ETF 与实物需求</h4>
+            <p>央行持续净买入、实物黄金 ETF 持仓增加，通常有利于中期需求。也可关注首饰、金条和金币消费、矿产与回收供应。月度和季度数据更适合验证趋势。</p>
+            <div class="guide-links"><a href="https://www.gold.org/goldhub/data/gold-etfs-holdings-and-flows" target="_blank" rel="noopener noreferrer">黄金 ETF 流向</a><a href="https://www.gold.org/goldhub/research/gold-demand-trends" target="_blank" rel="noopener noreferrer">季度黄金需求</a></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="guide-section" id="calendar" aria-labelledby="calendar-heading">
+        <h3 id="calendar-heading">未来一年关键观察日历</h3>
+        <p class="guide-note">2026-11-18 至 2027-11-18。按 2026-11-18 已公布的日程整理，2027 年美联储排期暂定，以机构最新日历为准。</p>
+        <div class="calendar-table-wrap" tabindex="0" role="region" aria-label="未来一年已公布的美国宏观事件日期">
+          <table class="calendar-table">
+            <caption>表内为美国东部时间的当月日期。CPI、就业报告和包含核心 PCE 的个人收入与支出报告计划于美东 08:30 发布，折合北京时间夏令时 20:30、冬令时 21:30。</caption>
+            <thead><tr><th scope="col">月份</th><th scope="col">美联储会议</th><th scope="col">美国 CPI</th><th scope="col">美国就业</th><th scope="col">核心 PCE</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">2026.11</th><td>—</td><td>—</td><td>—</td><td>25 日</td></tr>
+              <tr><th scope="row">2026.12</th><td>8–9 日 <span class="calendar-tag">含经济预测</span></td><td>10 日</td><td>4 日</td><td>23 日</td></tr>
+              <tr><th scope="row">2027.01</th><td>26–27 日</td><td>13 日</td><td>8 日</td><td>28 日</td></tr>
+              <tr><th scope="row">2027.02</th><td>—</td><td>11 日</td><td>5 日</td><td>25 日</td></tr>
+              <tr><th scope="row">2027.03</th><td>16–17 日</td><td>10 日</td><td>5 日</td><td>31 日</td></tr>
+              <tr><th scope="row">2027.04</th><td>27–28 日</td><td>13 日</td><td>2 日</td><td>29 日</td></tr>
+              <tr><th scope="row">2027.05</th><td>—</td><td>12 日</td><td>7 日</td><td>27 日</td></tr>
+              <tr><th scope="row">2027.06</th><td>8–9 日</td><td>10 日</td><td>4 日</td><td>25 日</td></tr>
+              <tr><th scope="row">2027.07</th><td>27–28 日</td><td>14 日</td><td>2 日</td><td>29 日</td></tr>
+              <tr><th scope="row">2027.08</th><td>—</td><td>11 日</td><td>6 日</td><td>25 日</td></tr>
+              <tr><th scope="row">2027.09</th><td>14–15 日</td><td>14 日</td><td>3 日</td><td>30 日</td></tr>
+              <tr><th scope="row">2027.10</th><td>26–27 日 <span class="calendar-tag">策略会议</span></td><td>14 日</td><td>8 日</td><td>28 日</td></tr>
+              <tr><th scope="row">2027.11</th><td>16–17 日</td><td>10 日</td><td>5 日</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="guide-links calendar-links" aria-label="官方日程来源">
+          <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank" rel="noopener noreferrer">美联储会议日历</a>
+          <a href="https://www.federalreserve.gov/newsevents/pressreleases/monetary20261112a.htm" target="_blank" rel="noopener noreferrer">2027 年排期修订</a>
+          <a href="https://www.bls.gov/schedule/news_release/cpi.htm" target="_blank" rel="noopener noreferrer">BLS CPI 日历</a>
+          <a href="https://www.bls.gov/schedule/news_release/empsit.htm" target="_blank" rel="noopener noreferrer">BLS 就业日历</a>
+          <a href="https://www.bea.gov/news/schedule/full" target="_blank" rel="noopener noreferrer">BEA 2026 年日历</a>
+          <a href="https://www.bea.gov/news/schedule/next-year" target="_blank" rel="noopener noreferrer">BEA 2027 年日历</a>
+        </div>
+
+        <aside class="guide-callout" aria-label="近期重点观察日">
+          <strong>北京时间 2026 年 12 月 10 日</strong>
+          <p>03:00 美联储计划发布决议和经济预测，21:30 美国 CPI 发布。分开记录两次公布后的实际利率、美元和黄金反应，便于判断哪项消息改变了市场预期。</p>
+          <div class="guide-links"><a href="https://www.federalreserve.gov/newsevents/2026-december.htm" target="_blank" rel="noopener noreferrer">美联储 12 月议程</a><a href="https://www.bls.gov/schedule/2026/12_sched_list.htm" target="_blank" rel="noopener noreferrer">BLS 12 月日程</a></div>
+        </aside>
+
+        <h4 class="guide-subheading">事件公布时看什么</h4>
+        <dl class="event-effects">
+          <div><dt>美联储会议</dt><dd>比较利率决议、声明和发布会与市场预期。若讲话偏紧并推高实际利率或美元，美元金价可能承压。偏松且利率、美元回落时，黄金可能受支撑。2027 年 10 月按计划专议政策策略，重点看长期框架与沟通方式。</dd></div>
+          <div><dt>CPI 与核心 PCE</dt><dd>两项指标都要看实际值与预期的差距。通胀超预期若推高实际利率，黄金可能承压。若通胀预期上升得比名义利率更快，实际利率可能下行，黄金反而可能得到支撑。</dd></div>
+          <div><dt>美国就业</dt><dd>同时看非农新增就业、失业率、工资和前值修正。就业降温若带来降息预期、压低实际利率，黄金可能受支撑。若增长担忧推高避险美元，需要观察两股力量谁更强。</dd></div>
+          <div><dt>中国储备与全球需求</dt><dd>中国外汇局计划于 2026 年 12 月 7 日公布上月官方储备资产，后续按月关注实物黄金储备（万盎司）。每季度看全球央行净购金、ETF 和实物需求，验证中期需求是否改善。 <a href="https://www.safe.gov.cn/safe/2026/0113/27032.html" target="_blank" rel="noopener noreferrer">外汇局发布时间表</a> · <a href="https://www.safe.gov.cn/safe/gfcbzc/index.html" target="_blank" rel="noopener noreferrer">外汇局储备数据</a> · <a href="https://www.gold.org/goldhub/research/gold-demand-trends" target="_blank" rel="noopener noreferrer">全球黄金需求报告</a></dd></div>
+        </dl>
+      </section>
+
+      <section class="guide-section" aria-labelledby="template-heading">
+        <div class="template-head">
+          <h3 id="template-heading">行情观察模板</h3>
+          <button type="button" class="refresh" id="copy-template" hidden>复制模板</button>
+        </div>
+        <p class="guide-note">发布前记下预期，发布后用相同时间段的行情核对。利率、美元和黄金信号分歧时，先记下反证，下一交易日再复盘。</p>
+        <textarea class="guide-template" id="guide-template" aria-labelledby="template-heading" rows="6" readonly spellcheck="false">事件、来源与北京时间 ｜ ______
+数据差异 ｜ 市场预期 ______ ／ 实际值 ______ ／ 前值修正 ______
+相同时间段的反应 ｜ 10 年期实际利率 ______ bp ／ 广义美元 ______ %
+报价变化 ｜ XAU/USD ______ % ／ USD/CNY ______ % ／ 人民币金价 ______ 元/克
+初步判断 ｜ 支撑 ／ 压制 ／ 信号分歧，依据 ______ ／ 反证 ______
+下一个交易日复盘 ｜ 行情是否延续 ______ ／ 哪项新信息会改变判断 ______</textarea>
+        <p class="guide-copy-status" id="guide-copy-status" role="status" hidden></p>
+      </section>
+    </section>
+
+    <section class="method" id="method" aria-labelledby="method-heading">
+      <h2 id="method-heading">换算依据</h2>
+      <p class="formula">人民币金价（元 / 克） = 现货黄金（美元 / 金衡盎司） × 美元兑人民币汇率 ÷ <strong>31.1034768</strong></p>
+      <p class="method-detail">1 金衡盎司 = 31.1034768 克。换算价仅反映黄金本身的参考价值，实际购买价格可能包含溢价及工费。</p>
+    </section>
+
+    <footer>
+      <span>数据与单位来源</span>
+      <a href="https://gold-api.com/faqs" target="_blank" rel="noopener noreferrer">Gold API</a>
+      <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter</a>
+      <a href="https://www.nist.gov/pml/owm/metric-si/unit-conversion/precious-metals-conversion-information" target="_blank" rel="noopener noreferrer">NIST</a>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,323 @@
+"use strict";
+
+{
+  const DAY = 86_400_000;
+  const GOLD_HISTORY = "https://standardbullion.com/api/v1/market/history";
+  const RATE_HISTORY = "https://api.frankfurter.dev/v2/rates";
+  const rangeButtons = [...document.querySelectorAll("[data-history-days]")];
+  const maxDays = Math.max(...rangeButtons.map((button) => Number(button.dataset.historyDays)));
+  const heading = byId("history-heading");
+  const chart = byId("history-chart");
+  const context = chart.getContext("2d");
+  const figure = byId("history-figure");
+  const dateLabel = byId("history-date");
+  const priceLabel = byId("history-price");
+  const rangeLabel = byId("history-range");
+  const message = byId("history-message");
+  const status = byId("history-status");
+  const retry = byId("history-retry");
+  const details = byId("history-details");
+  const rows = byId("history-rows");
+  const statistics = byId("history-stats");
+  const highDate = byId("history-high-date");
+  const lowDate = byId("history-low-date");
+  const axisFormat = new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 });
+  const percentFormat = new Intl.NumberFormat("zh-CN", {
+    style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero",
+  });
+  let history = [];
+  let chartLocations = [];
+  let selected = 0;
+  let highest = 0;
+  let lowest = 0;
+  let activeDays = 30;
+  let windowEnd;
+  let availableHistory = null;
+  let loading = false;
+
+  function dateKey(time) {
+    return new Date(time).toISOString().slice(0, 10);
+  }
+
+  function shortDate(date) {
+    return date.slice(5).replace("-", "/");
+  }
+
+  function currentUtcDay() {
+    return Math.floor(Date.now() / DAY) * DAY;
+  }
+
+  function historyWindow(days) {
+    return { from: dateKey(windowEnd - days * DAY), to: dateKey(windowEnd - DAY) };
+  }
+
+  function dailyValues(gold, rates, { from, to }) {
+    if (gold.metal !== "XAU" || gold.grain !== "daily" || gold.unit !== "USD per troy ounce" ||
+        !Array.isArray(gold.points) || !Array.isArray(rates)) {
+      throw new Error("Unexpected historical response");
+    }
+
+    const byDate = new Map(rates
+      .filter(({ base, quote, rate }) => base === "USD" && quote === "CNY" && Number.isFinite(rate) && rate > 0)
+      .map(({ date, rate }) => [date, rate]));
+
+    const values = new Map();
+    for (const { t, price } of gold.points) {
+      if (!/^\d{4}-\d{2}-\d{2}T00:00:00(?:\.0+)?Z$/.test(t) || !Number.isFinite(price) || price <= 0) continue;
+      const date = t.slice(0, 10);
+      const rate = byDate.get(date);
+      if (date < from || date > to || rate === undefined) continue;
+      values.set(date, { date, time: Date.parse(date), value: price * rate / GRAMS_PER_TROY_OUNCE });
+    }
+    return [...values.values()].sort((first, second) => first.time - second.time);
+  }
+
+  function plotScale(min, max) {
+    const padding = Math.max((max - min) * 0.1, 0.25);
+    const stepTarget = (max - min + 2 * padding) / 4;
+    const magnitude = 10 ** Math.floor(Math.log10(stepTarget));
+    const step = [1, 2, 2.5, 5, 10].map((factor) => factor * magnitude).find((value) => value >= stepTarget);
+    return {
+      step,
+      bottom: Math.floor((min - padding) / step) * step,
+      top: Math.ceil((max + padding) / step) * step,
+    };
+  }
+
+  function drawExtremum(index, plot, isHigh) {
+    const point = chartLocations[index];
+    const color = isHigh ? "#f2d397" : "#ddd0b8";
+    const label = `${isHigh ? "最高" : "最低"} ${shortDate(history[index].date)}`;
+    context.font = "11px system-ui, sans-serif";
+    const width = context.measureText(label).width + 12;
+    const left = Math.max(plot.left, Math.min(point.x - width / 2, plot.right - width));
+    const top = isHigh ? Math.max(0, point.y - 27) : Math.min(plot.bottom - 16, point.y + 9);
+
+    context.fillStyle = "#30291e";
+    context.fillRect(left, top, width, 18);
+    context.fillStyle = color;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(label, left + width / 2, top + 9);
+    context.beginPath();
+    context.arc(point.x, point.y, 5, 0, Math.PI * 2);
+    context.lineWidth = 1.5;
+    context.strokeStyle = color;
+    context.stroke();
+  }
+
+  function drawHistory() {
+    if (!context || !history.length) return;
+    const { width, height } = chart.getBoundingClientRect();
+    if (!width || !height) return;
+
+    const ratio = window.devicePixelRatio || 1;
+    chart.width = Math.round(width * ratio);
+    chart.height = Math.round(height * ratio);
+    context.scale(ratio, ratio);
+
+    const plot = { left: 41, right: width - 18, top: 12, bottom: height - 29 };
+    const scale = plotScale(history[lowest].value, history[highest].value);
+    const start = history[0].time;
+    const duration = history.at(-1).time - start;
+    const xFor = (time) => plot.left + (time - start) / duration * (plot.right - plot.left);
+    const yFor = (value) => plot.bottom - (value - scale.bottom) / (scale.top - scale.bottom) * (plot.bottom - plot.top);
+    const locations = history.map(({ time, value }) => ({ x: xFor(time), y: yFor(value) }));
+    chartLocations = locations;
+
+    context.font = "11px system-ui, sans-serif";
+    context.fillStyle = "#b3ab9c";
+    context.strokeStyle = "#433a2d";
+    context.textAlign = "right";
+    context.textBaseline = "middle";
+    const tickCount = Math.round((scale.top - scale.bottom) / scale.step);
+    for (let tick = 0; tick <= tickCount; tick += 1) {
+      const value = scale.bottom + tick * scale.step;
+      const y = yFor(value);
+      context.fillText(axisFormat.format(value), plot.left - 8, y);
+      context.beginPath();
+      context.moveTo(plot.left, y);
+      context.lineTo(plot.right, y);
+      context.stroke();
+    }
+
+    const labelCount = width < 460 ? 4 : 6;
+    const labelIntervals = Math.min(labelCount, history.length) - 1;
+    context.textAlign = "center";
+    for (let label = 0; label <= labelIntervals; label += 1) {
+      const index = Math.round(label * (history.length - 1) / labelIntervals);
+      const day = shortDate(history[index].date);
+      const x = Math.min(width - 17, locations[index].x);
+      context.fillText(day, x, height - 10);
+    }
+
+    const line = new Path2D();
+    line.moveTo(locations[0].x, locations[0].y);
+    locations.slice(1).forEach(({ x, y }) => line.lineTo(x, y));
+
+    const area = new Path2D(line);
+    area.lineTo(locations.at(-1).x, plot.bottom);
+    area.lineTo(locations[0].x, plot.bottom);
+    area.closePath();
+    const gradient = context.createLinearGradient(0, plot.top, 0, plot.bottom);
+    gradient.addColorStop(0, "#c99a4954");
+    gradient.addColorStop(1, "#c99a4906");
+    context.fillStyle = gradient;
+    context.fill(area);
+
+    context.lineJoin = "round";
+    context.lineCap = "round";
+    context.lineWidth = 2;
+    context.strokeStyle = "#e6bd70";
+    context.stroke(line);
+
+    const point = locations[selected];
+    context.lineWidth = 1;
+    context.strokeStyle = "#e6bd7080";
+    context.setLineDash([3, 4]);
+    context.beginPath();
+    context.moveTo(point.x, plot.top);
+    context.lineTo(point.x, plot.bottom);
+    context.stroke();
+    context.setLineDash([]);
+    context.beginPath();
+    context.arc(point.x, point.y, 4, 0, Math.PI * 2);
+    context.fillStyle = "#f2d397";
+    context.fill();
+    drawExtremum(highest, plot, true);
+    drawExtremum(lowest, plot, false);
+  }
+
+  function select(index) {
+    selected = index;
+    const { date, value } = history[index];
+    dateLabel.dateTime = date;
+    dateLabel.textContent = date;
+    priceLabel.textContent = currencyFormat.format(value);
+    drawHistory();
+  }
+
+  function nearestPoint(event) {
+    if (!chartLocations.length) return;
+    const x = event.clientX - chart.getBoundingClientRect().left;
+    let closest = 0;
+    chartLocations.forEach((point, index) => {
+      if (Math.abs(point.x - x) < Math.abs(chartLocations[closest].x - x)) closest = index;
+    });
+    if (closest !== selected) select(closest);
+  }
+
+  function showStatistics() {
+    highest = 0;
+    lowest = 0;
+    history.forEach(({ value }, index) => {
+      if (value > history[highest].value) highest = index;
+      if (value < history[lowest].value) lowest = index;
+    });
+    const high = history[highest];
+    const low = history[lowest];
+    const first = history[0];
+    const last = history.at(-1);
+    byId("history-high").textContent = currencyFormat.format(high.value);
+    highDate.dateTime = high.date;
+    highDate.textContent = high.date;
+    byId("history-low").textContent = currencyFormat.format(low.value);
+    lowDate.dateTime = low.date;
+    lowDate.textContent = low.date;
+    byId("history-change").textContent = percentFormat.format((last.value - first.value) / first.value);
+    byId("history-change-dates").textContent = `${shortDate(first.date)} 至 ${shortDate(last.date)}`;
+    statistics.hidden = false;
+  }
+
+  function showHistory(windowDates, values) {
+    history = values;
+    showStatistics();
+    const fragment = document.createDocumentFragment();
+    for (const { date, value } of history) {
+      const row = document.createElement("tr");
+      row.insertCell().textContent = date;
+      row.insertCell().textContent = currencyFormat.format(value);
+      fragment.append(row);
+    }
+    rows.replaceChildren(fragment);
+    rangeLabel.textContent = `${windowDates.from} 至 ${windowDates.to} · ${history.length} 条日度数据`;
+    message.hidden = true;
+    figure.hidden = !context;
+    details.hidden = false;
+    select(history.length - 1);
+  }
+
+  function showMessage(text, canRetry = false) {
+    history = [];
+    chartLocations = [];
+    statistics.hidden = true;
+    figure.hidden = true;
+    details.hidden = true;
+    status.textContent = text;
+    retry.hidden = !canRetry;
+    message.hidden = false;
+  }
+
+  function showSelectedRange() {
+    const windowDates = historyWindow(activeDays);
+    const values = availableHistory.filter(({ date }) => date >= windowDates.from);
+    if (values.length < 2) {
+      rangeLabel.textContent = `${windowDates.from} 至 ${windowDates.to}`;
+      showMessage("这个区间的日收盘价不足，试试更长的区间。");
+      return;
+    }
+    showHistory(windowDates, values);
+  }
+
+  function chooseRange(days) {
+    activeDays = days;
+    heading.textContent = `近 ${days} 天人民币金价`;
+    rangeButtons.forEach((button) => {
+      button.setAttribute("aria-pressed", String(Number(button.dataset.historyDays) === days));
+    });
+    if (windowEnd !== currentUtcDay()) {
+      loadHistory();
+    } else if (availableHistory) {
+      showSelectedRange();
+    }
+  }
+
+  async function loadHistory() {
+    if (loading) return;
+    loading = true;
+    availableHistory = null;
+    windowEnd = currentUtcDay();
+    rangeLabel.textContent = "日线参考价";
+    showMessage("正在加载历史金价…");
+    const windowDates = historyWindow(maxDays);
+    const { from, to } = windowDates;
+    const goldUrl = new URL(GOLD_HISTORY);
+    // Standard Bullion may omit the first requested day. Trim the extra day after fetching.
+    goldUrl.search = new URLSearchParams({ metal: "XAU", start_date: historyWindow(maxDays + 1).from, end_date: to });
+    const rateUrl = new URL(RATE_HISTORY);
+    rateUrl.search = new URLSearchParams({ base: "USD", quotes: "CNY", from, to });
+    try {
+      const [gold, rates] = await Promise.all([getJson(goldUrl), getJson(rateUrl)]);
+      const values = dailyValues(gold, rates, windowDates);
+      if (values.length < 2) throw new Error("Too few historical quotes");
+      availableHistory = values;
+      showSelectedRange();
+    } catch {
+      showMessage("历史金价暂时无法加载。", true);
+    } finally {
+      loading = false;
+    }
+  }
+
+  chart.addEventListener("pointermove", nearestPoint);
+  chart.addEventListener("pointerdown", nearestPoint);
+  chart.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "mouse" && history.length && selected !== history.length - 1) select(history.length - 1);
+  });
+  new ResizeObserver(drawHistory).observe(chart);
+  rangeButtons.forEach((button) => {
+    button.addEventListener("click", () => chooseRange(Number(button.dataset.historyDays)));
+  });
+  retry.addEventListener("click", loadHistory);
+  loadHistory();
+}
