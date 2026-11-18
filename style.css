@@ -302,29 +302,24 @@ footer a { text-decoration: underline; text-underline-offset: 4px; }
 .brand { white-space: nowrap; }
 .header-nav { flex-wrap: wrap; justify-content: flex-end; row-gap: 2px; }
 
-.bank-gold { margin-top: 18px; scroll-margin-top: 20px; }
-.bank-gold-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 5px 16px; }
-.bank-gold-heading h2 { font-size: clamp(20px, 3vw, 25px); font-weight: 650; letter-spacing: .02em; }
-.bank-gold-heading p, .bank-note { color: var(--muted); font-size: 12px; line-height: 1.6; }
-.bank-gold-heading time { font-variant-numeric: tabular-nums; }
-.bank-gold-intro { margin-top: 7px; color: #ded3c0; font-size: 13px; line-height: 1.65; }
-.bank-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 15px; }
-.bank-card { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 9px; background: #1b1915; }
-.bank-card h3 { margin: 0; padding: 11px 15px; background: #282318; color: #f2d397; font-size: 15px; font-weight: 650; }
-.bank-product { padding: 13px 15px; border-top: 1px solid var(--border); }
-.bank-product h4 { margin: 0; color: var(--paper); font-size: 13px; font-weight: 600; }
-.bank-product h4 span { margin-inline-start: 7px; color: var(--gold); }
-.bank-product dl { margin: 7px 0 0; font-size: 12px; line-height: 1.6; }
-.bank-product dl div { display: grid; grid-template-columns: 4.4em minmax(0, 1fr); gap: 6px; }
-.bank-product dl div + div { margin-top: 3px; }
-.bank-product dt { color: var(--muted); }
-.bank-product dd { margin: 0; color: #e5dac7; }
-.bank-channel { margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.6; }
-.bank-links { display: flex; flex-wrap: wrap; gap: 3px 13px; margin-top: 5px; }
-.bank-links a { padding-block: 3px; color: #e4c898; font-size: 12px; line-height: 1.55; text-decoration: underline; text-underline-offset: 3px; }
-.bank-links a:hover { color: var(--paper); }
-.bank-links a span { margin-inline-start: 2px; }
-.bank-note { margin-top: 12px; }
+.domestic-gold { margin-top: 18px; scroll-margin-top: 20px; }
+.domestic-gold-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 5px 14px; }
+.domestic-gold-heading h2 { font-size: clamp(20px, 3vw, 25px); font-weight: 650; letter-spacing: .02em; }
+.domestic-gold-heading p, .domestic-note { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.domestic-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.domestic-quote { display: flex; flex-direction: column; min-width: 0; padding: 15px; border: 1px solid var(--border); border-radius: 9px; background: #1b1915; }
+.domestic-quote h3 { margin: 0; color: var(--paper); font-size: 15px; font-weight: 650; }
+.domestic-kind { margin-top: 5px; color: var(--muted); font-size: 12px; }
+.domestic-price { margin-top: 9px; color: var(--muted); font-size: 12px; }
+.domestic-price strong { color: #f2d397; font-family: ui-monospace, monospace; font-size: clamp(21px, 3vw, 30px); font-weight: 600; letter-spacing: -.04em; }
+.domestic-details { margin: 11px 0 0; padding-top: 9px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; line-height: 1.6; }
+.domestic-details div { display: grid; grid-template-columns: 4.4em minmax(0, 1fr); gap: 5px; }
+.domestic-details dd { margin: 0; color: #e5dac7; font-variant-numeric: tabular-nums; }
+.domestic-amount { white-space: nowrap; }
+.domestic-note { margin-top: 5px; }
+.domestic-source { margin-top: auto; padding-top: 11px; font-size: 12px; line-height: 1.55; }
+.domestic-source a { color: #e4c898; text-decoration: underline; text-underline-offset: 3px; }
+.domestic-source a:hover { color: var(--paper); }
 
 .guide { margin-top: 18px; scroll-margin-top: 20px; }
 .guide h2 { font-size: clamp(20px, 3vw, 25px); font-weight: 650; letter-spacing: .02em; }
@@ -382,7 +377,7 @@ footer a { text-decoration: underline; text-underline-offset: 4px; }
 .guide-copy-status { margin-top: 7px; color: #f2d397; font-size: 12px; line-height: 1.5; }
 
 @media (max-width: 620px) {
-  .bank-grid { grid-template-columns: 1fr; }
+  .domestic-grid { grid-template-columns: 1fr; }
   .driver-grid { grid-template-columns: 1fr; }
   .event-effects > div { grid-template-columns: 1fr; }
 }
