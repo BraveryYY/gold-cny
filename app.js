@@ -9,16 +9,12 @@ const fields = [
   { input: byId("spot"), source: byId("spot-source"), label: "金价", example: "示例报价", kind: "example", revision: 0 },
   { input: byId("rate"), source: byId("rate-source"), label: "汇率", example: "示例汇率", kind: "example", revision: 0 },
 ];
-const weight = byId("weight");
-const presets = [...document.querySelectorAll("[data-weight]")];
 const priceOutput = byId("price-per-gram");
-const totalOutput = byId("total");
 const statusDot = byId("status-dot");
 const quoteStatus = byId("quote-status");
 const refreshButton = byId("refresh");
 const refreshLabel = byId("refresh-label");
 const refreshNote = byId("refresh-note");
-const weightError = byId("weight-error");
 
 const currencyFormat = new Intl.NumberFormat("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const quoteTimeFormat = new Intl.DateTimeFormat("zh-CN", {
@@ -73,14 +69,6 @@ function render() {
   } else {
     setStatus("最新获取报价 · 参考汇率", "market");
   }
-
-  const grams = readPositive(weight.value);
-  weight.setAttribute("aria-invalid", String(grams === null));
-  weightError.hidden = grams !== null;
-  presets.forEach((button) => button.setAttribute("aria-pressed", String(Number(button.dataset.weight) === grams)));
-  const total = canConvert && grams !== null ? amount * grams : NaN;
-  const totalText = Number.isFinite(total) && total > 0 ? `¥${formatAmount(total)}` : "–";
-  if (totalOutput.value !== totalText) totalOutput.value = totalText;
 }
 
 async function getJson(url) {
@@ -151,11 +139,6 @@ fields.forEach((field) => {
     render();
   });
 });
-weight.addEventListener("input", render);
-presets.forEach((button) => button.addEventListener("click", () => {
-  weight.value = button.dataset.weight;
-  render();
-}));
 refreshButton.addEventListener("click", refreshQuotes);
 render();
 refreshQuotes();

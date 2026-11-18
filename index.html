@@ -55,55 +55,31 @@
       </div>
     </section>
 
-    <div class="tools-grid">
-      <section class="panel inputs-panel" aria-labelledby="input-heading">
-        <div class="panel-heading">
-          <h2 id="input-heading">换算参数</h2>
-          <span>可手动修改</span>
-        </div>
-        <div class="fields">
-          <div class="field">
-            <label for="spot">国际现货黄金 <span class="ticker">XAU/USD</span></label>
-            <div class="input-box">
-              <input id="spot" value="4000" type="text" inputmode="decimal" autocomplete="off" aria-describedby="spot-unit spot-source" spellcheck="false">
-              <span id="spot-unit">美元 / 金衡盎司</span>
-            </div>
-            <p class="source" id="spot-source">示例报价</p>
+    <section class="panel inputs-panel" aria-labelledby="input-heading">
+      <div class="panel-heading">
+        <h2 id="input-heading">换算参数</h2>
+        <span>可手动修改</span>
+      </div>
+      <div class="fields">
+        <div class="field">
+          <label for="spot">国际现货黄金 <span class="ticker">XAU/USD</span></label>
+          <div class="input-box">
+            <input id="spot" value="4000" type="text" inputmode="decimal" autocomplete="off" aria-describedby="spot-unit spot-source" spellcheck="false">
+            <span id="spot-unit">美元 / 金衡盎司</span>
           </div>
-          <div class="field">
-            <label for="rate">美元兑人民币 <span class="ticker">USD/CNY</span></label>
-            <div class="input-box">
-              <input id="rate" value="7.00" type="text" inputmode="decimal" autocomplete="off" aria-describedby="rate-unit rate-source" spellcheck="false">
-              <span id="rate-unit">元 / 美元</span>
-            </div>
-            <p class="source" id="rate-source">示例汇率</p>
+          <p class="source" id="spot-source">示例报价</p>
+        </div>
+        <div class="field">
+          <label for="rate">美元兑人民币 <span class="ticker">USD/CNY</span></label>
+          <div class="input-box">
+            <input id="rate" value="7.00" type="text" inputmode="decimal" autocomplete="off" aria-describedby="rate-unit rate-source" spellcheck="false">
+            <span id="rate-unit">元 / 美元</span>
           </div>
+          <p class="source" id="rate-source">示例汇率</p>
         </div>
-        <p class="refresh-note" id="refresh-note" role="status" hidden></p>
-      </section>
-
-      <section class="panel weight-panel" aria-labelledby="weight-heading">
-        <div class="panel-heading">
-          <h2 id="weight-heading">按克重估算</h2>
-        </div>
-        <div class="weight-form">
-          <div class="input-box weight-input">
-            <input id="weight" value="1" type="text" inputmode="decimal" autocomplete="off" aria-label="黄金克重" aria-describedby="weight-unit weight-error" spellcheck="false">
-            <span id="weight-unit">克</span>
-          </div>
-          <div class="presets" role="group" aria-label="常用克重">
-            <button type="button" data-weight="1" aria-pressed="true">1 克</button>
-            <button type="button" data-weight="10" aria-pressed="false">10 克</button>
-            <button type="button" data-weight="100" aria-pressed="false">100 克</button>
-          </div>
-        </div>
-        <p class="source error" id="weight-error" hidden>请输入大于 0 的克重</p>
-        <div class="weight-result">
-          <span>参考总价</span>
-          <output id="total" for="spot rate weight">¥900.22</output>
-        </div>
-      </section>
-    </div>
+      </div>
+      <p class="refresh-note" id="refresh-note" role="status" hidden></p>
+    </section>
 
     <section class="panel history-panel" id="history" aria-labelledby="history-heading">
       <div class="history-header">
