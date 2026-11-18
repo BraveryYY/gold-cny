@@ -107,6 +107,8 @@ async function getExchangeRate() {
   }
   return {
     value: String(rate),
+    rate,
+    date,
     label: `Frankfurter · ${date} 日度参考汇率`,
   };
 }

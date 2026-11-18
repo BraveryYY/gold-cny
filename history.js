@@ -2,6 +2,9 @@
 
 {
   const DAY = 86_400_000;
+  const HOUR = 3_600_000;
+  const QUOTE_INTERVAL = 15 * 60_000;
+  const BEIJING_OFFSET = 8 * HOUR;
   const GOLD_HISTORY = "https://standardbullion.com/api/v1/market/history";
   const RATE_HISTORY = "https://api.frankfurter.dev/v2/rates";
   const rangeButtons = [...document.querySelectorAll("[data-history-days]")];
@@ -18,10 +21,17 @@
   const retry = byId("history-retry");
   const details = byId("history-details");
   const rows = byId("history-rows");
+  const todayMeta = byId("today-meta");
+  const todayQuoteTime = byId("today-quote-time");
+  const todayRateDate = byId("today-rate-date");
+  const todayRefreshStatus = byId("today-refresh-status");
   const statistics = byId("history-stats");
   const highDate = byId("history-high-date");
   const lowDate = byId("history-low-date");
   const axisFormat = new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 });
+  const beijingTimeFormat = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  });
   const percentFormat = new Intl.NumberFormat("zh-CN", {
     style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero",
   });
@@ -34,6 +44,9 @@
   let windowEnd;
   let availableHistory = null;
   let loading = false;
+  let availableToday = null;
+  let loadingToday = false;
+  let todayTimer;
 
   function dateKey(time) {
     return new Date(time).toISOString().slice(0, 10);
@@ -45,6 +58,19 @@
 
   function currentUtcDay() {
     return Math.floor(Date.now() / DAY) * DAY;
+  }
+
+  function beijingDay(time) {
+    return Math.floor((time + BEIJING_OFFSET) / DAY) * DAY - BEIJING_OFFSET;
+  }
+
+  function pointLabel(point) {
+    return activeDays ? shortDate(point.date) : beijingTimeFormat.format(point.time);
+  }
+
+  function setPointTime(element, point) {
+    element.dateTime = activeDays ? point.date : new Date(point.time).toISOString();
+    element.textContent = activeDays ? point.date : pointLabel(point);
   }
 
   function historyWindow(days) {
@@ -72,6 +98,21 @@
     return [...values.values()].sort((first, second) => first.time - second.time);
   }
 
+  function intradayValues(gold, rate, start, end) {
+    if (gold.metal !== "XAU" || gold.grain !== "tick" || gold.unit !== "USD per troy ounce" ||
+        !Array.isArray(gold.points)) {
+      throw new Error("Unexpected intraday response");
+    }
+
+    const values = new Map();
+    for (const { t, price } of gold.points) {
+      const time = Date.parse(t);
+      if (!Number.isFinite(time) || time < start || time > end || !Number.isFinite(price) || price <= 0) continue;
+      values.set(time, { time, value: price * rate / GRAMS_PER_TROY_OUNCE });
+    }
+    return [...values.values()].sort((first, second) => first.time - second.time);
+  }
+
   function plotScale(min, max) {
     const padding = Math.max((max - min) * 0.1, 0.25);
     const stepTarget = (max - min + 2 * padding) / 4;
@@ -87,7 +128,7 @@
   function drawExtremum(index, plot, isHigh) {
     const point = chartLocations[index];
     const color = isHigh ? "#f2d397" : "#ddd0b8";
-    const label = `${isHigh ? "最高" : "最低"} ${shortDate(history[index].date)}`;
+    const label = `${isHigh ? "最高" : "最低"} ${pointLabel(history[index])}`;
     context.font = "11px system-ui, sans-serif";
     const width = context.measureText(label).width + 12;
     const left = Math.max(plot.left, Math.min(point.x - width / 2, plot.right - width));
@@ -106,6 +147,43 @@
     context.stroke();
   }
 
+  function drawSeries(locations, plot) {
+    const segments = [[locations[0]]];
+    for (let index = 1; index < locations.length; index += 1) {
+      if (!activeDays && history[index].time - history[index - 1].time > QUOTE_INTERVAL) segments.push([]);
+      segments.at(-1).push(locations[index]);
+    }
+
+    const gradient = context.createLinearGradient(0, plot.top, 0, plot.bottom);
+    gradient.addColorStop(0, "#c99a4954");
+    gradient.addColorStop(1, "#c99a4906");
+    context.lineJoin = "round";
+    context.lineCap = "round";
+    context.lineWidth = 2;
+    context.strokeStyle = "#e6bd70";
+
+    for (const segment of segments) {
+      const first = segment[0];
+      if (segment.length === 1) {
+        context.fillStyle = "#e6bd70";
+        context.beginPath();
+        context.arc(first.x, first.y, 2, 0, Math.PI * 2);
+        context.fill();
+        continue;
+      }
+      const line = new Path2D();
+      line.moveTo(first.x, first.y);
+      segment.slice(1).forEach(({ x, y }) => line.lineTo(x, y));
+      const area = new Path2D(line);
+      area.lineTo(segment.at(-1).x, plot.bottom);
+      area.lineTo(first.x, plot.bottom);
+      area.closePath();
+      context.fillStyle = gradient;
+      context.fill(area);
+      context.stroke(line);
+    }
+  }
+
   function drawHistory() {
     if (!context || !history.length) return;
     const { width, height } = chart.getBoundingClientRect();
@@ -118,8 +196,9 @@
 
     const plot = { left: 41, right: width - 18, top: 12, bottom: height - 29 };
     const scale = plotScale(history[lowest].value, history[highest].value);
-    const start = history[0].time;
-    const duration = history.at(-1).time - start;
+    const start = activeDays ? history[0].time : beijingDay(history[0].time);
+    const end = activeDays ? history.at(-1).time : Math.min(Date.now(), start + DAY - 1);
+    const duration = Math.max(1, end - start);
     const xFor = (time) => plot.left + (time - start) / duration * (plot.right - plot.left);
     const yFor = (value) => plot.bottom - (value - scale.bottom) / (scale.top - scale.bottom) * (plot.bottom - plot.top);
     const locations = history.map(({ time, value }) => ({ x: xFor(time), y: yFor(value) }));
@@ -142,34 +221,21 @@
     }
 
     const labelCount = width < 460 ? 4 : 6;
-    const labelIntervals = Math.min(labelCount, history.length) - 1;
     context.textAlign = "center";
-    for (let label = 0; label <= labelIntervals; label += 1) {
-      const index = Math.round(label * (history.length - 1) / labelIntervals);
-      const day = shortDate(history[index].date);
-      const x = Math.min(width - 17, locations[index].x);
-      context.fillText(day, x, height - 10);
+    if (activeDays) {
+      const labelIntervals = Math.min(labelCount, history.length) - 1;
+      for (let label = 0; label <= labelIntervals; label += 1) {
+        const index = Math.round(label * (history.length - 1) / labelIntervals);
+        context.fillText(pointLabel(history[index]), locations[index].x, height - 10);
+      }
+    } else {
+      const step = [0.25, 0.5, 1, 2, 3, 4, 6, 8].find((hours) => hours * HOUR >= duration / (labelCount - 1)) * HOUR;
+      for (let time = start; time <= end; time += step) {
+        context.fillText(beijingTimeFormat.format(time), xFor(time), height - 10);
+      }
     }
 
-    const line = new Path2D();
-    line.moveTo(locations[0].x, locations[0].y);
-    locations.slice(1).forEach(({ x, y }) => line.lineTo(x, y));
-
-    const area = new Path2D(line);
-    area.lineTo(locations.at(-1).x, plot.bottom);
-    area.lineTo(locations[0].x, plot.bottom);
-    area.closePath();
-    const gradient = context.createLinearGradient(0, plot.top, 0, plot.bottom);
-    gradient.addColorStop(0, "#c99a4954");
-    gradient.addColorStop(1, "#c99a4906");
-    context.fillStyle = gradient;
-    context.fill(area);
-
-    context.lineJoin = "round";
-    context.lineCap = "round";
-    context.lineWidth = 2;
-    context.strokeStyle = "#e6bd70";
-    context.stroke(line);
+    drawSeries(locations, plot);
 
     const point = locations[selected];
     context.lineWidth = 1;
@@ -190,10 +256,9 @@
 
   function select(index) {
     selected = index;
-    const { date, value } = history[index];
-    dateLabel.dateTime = date;
-    dateLabel.textContent = date;
-    priceLabel.textContent = currencyFormat.format(value);
+    const point = history[index];
+    setPointTime(dateLabel, point);
+    priceLabel.textContent = currencyFormat.format(point.value);
     drawHistory();
   }
 
@@ -219,28 +284,28 @@
     const first = history[0];
     const last = history.at(-1);
     byId("history-high").textContent = currencyFormat.format(high.value);
-    highDate.dateTime = high.date;
-    highDate.textContent = high.date;
+    setPointTime(highDate, high);
     byId("history-low").textContent = currencyFormat.format(low.value);
-    lowDate.dateTime = low.date;
-    lowDate.textContent = low.date;
-    byId("history-change").textContent = percentFormat.format((last.value - first.value) / first.value);
-    byId("history-change-dates").textContent = `${shortDate(first.date)} 至 ${shortDate(last.date)}`;
+    setPointTime(lowDate, low);
+    byId("history-change").textContent = history.length > 1 ?
+      percentFormat.format((last.value - first.value) / first.value) : "—";
+    byId("history-change-dates").textContent = history.length > 1 ?
+      `${pointLabel(first)} 至 ${pointLabel(last)}` : "仅有一条报价";
     statistics.hidden = false;
   }
 
-  function showHistory(windowDates, values) {
+  function showHistory(rangeText, values) {
     history = values;
     showStatistics();
     const fragment = document.createDocumentFragment();
-    for (const { date, value } of history) {
+    for (const point of history) {
       const row = document.createElement("tr");
-      row.insertCell().textContent = date;
-      row.insertCell().textContent = currencyFormat.format(value);
+      row.insertCell().textContent = activeDays ? point.date : pointLabel(point);
+      row.insertCell().textContent = currencyFormat.format(point.value);
       fragment.append(row);
     }
     rows.replaceChildren(fragment);
-    rangeLabel.textContent = `${windowDates.from} 至 ${windowDates.to} · ${history.length} 条日度数据`;
+    if (rangeLabel.textContent !== rangeText) rangeLabel.textContent = rangeText;
     message.hidden = true;
     figure.hidden = !context;
     details.hidden = false;
@@ -251,6 +316,7 @@
     history = [];
     chartLocations = [];
     statistics.hidden = true;
+    todayMeta.hidden = true;
     figure.hidden = true;
     details.hidden = true;
     status.textContent = text;
@@ -266,19 +332,59 @@
       showMessage("这个区间的日收盘价不足，试试更长的区间。");
       return;
     }
-    showHistory(windowDates, values);
+    showHistory(`${windowDates.from} 至 ${windowDates.to} · ${values.length} 条日度数据`, values);
+  }
+
+  function showToday({ start, values, rateDate }) {
+    const date = dateKey(start + BEIJING_OFFSET);
+    const rangeText = `${date} · 北京时间 00:00 至今`;
+    if (!values.length) {
+      rangeLabel.textContent = rangeText;
+      showMessage("北京时间今日暂无盘中报价。", true);
+      return;
+    }
+
+    const latest = values.at(-1);
+    todayQuoteTime.dateTime = new Date(latest.time).toISOString();
+    todayQuoteTime.textContent = beijingTimeFormat.format(latest.time);
+    todayRateDate.dateTime = rateDate;
+    todayRateDate.textContent = rateDate;
+    todayRefreshStatus.hidden = true;
+    todayMeta.hidden = false;
+    showHistory(`${rangeText} · ${values.length} 条盘中报价`, values);
+  }
+
+  function useDailyHistory() {
+    if (windowEnd !== currentUtcDay()) loadHistory();
+    else if (availableHistory) showSelectedRange();
+    else {
+      rangeLabel.textContent = "日线参考价";
+      showMessage(loading ? "正在加载历史金价…" : "历史金价暂时无法加载。", !loading);
+    }
   }
 
   function chooseRange(days) {
     activeDays = days;
-    heading.textContent = `近 ${days} 天人民币金价`;
+    heading.textContent = days ? `近 ${days} 天人民币金价` : "今日人民币金价";
+    byId("daily-source").hidden = !days;
+    byId("today-source").hidden = Boolean(days);
+    byId("history-detail-label").textContent = days ? "查看每日数据" : "查看今日数据";
+    byId("history-time-heading").textContent = days ? "日期" : "时间（北京时间）";
     rangeButtons.forEach((button) => {
       button.setAttribute("aria-pressed", String(Number(button.dataset.historyDays) === days));
     });
-    if (windowEnd !== currentUtcDay()) {
-      loadHistory();
-    } else if (availableHistory) {
-      showSelectedRange();
+
+    clearInterval(todayTimer);
+    todayMeta.hidden = true;
+    if (days) {
+      useDailyHistory();
+    } else {
+      if (availableToday?.start === beijingDay(Date.now())) showToday(availableToday);
+      else showMessage("正在加载今日盘中金价…");
+      loadToday();
+      todayTimer = setInterval(() => {
+        if (!document.hidden) loadToday();
+      }, 60_000);
     }
   }
 
@@ -301,11 +407,41 @@
       const values = dailyValues(gold, rates, windowDates);
       if (values.length < 2) throw new Error("Too few historical quotes");
       availableHistory = values;
-      showSelectedRange();
+      if (activeDays) showSelectedRange();
     } catch {
-      showMessage("历史金价暂时无法加载。", true);
+      if (activeDays) showMessage("历史金价暂时无法加载。", true);
     } finally {
       loading = false;
+    }
+  }
+
+  async function loadToday() {
+    if (activeDays || loadingToday) return;
+    loadingToday = true;
+    const start = beijingDay(Date.now());
+    if (availableToday?.start !== start || !availableToday.values.length) {
+      rangeLabel.textContent = "15 分钟盘中参考价";
+      showMessage("正在加载今日盘中金价…");
+    }
+
+    try {
+      const goldUrl = new URL(GOLD_HISTORY);
+      goldUrl.search = new URLSearchParams({ metal: "XAU", range: "24h" });
+      const [gold, { rate, date: rateDate }] = await Promise.all([getJson(goldUrl), getExchangeRate()]);
+      const fetchedAt = Date.now();
+      const fetchedDay = beijingDay(fetchedAt);
+      availableToday = { start: fetchedDay, rateDate, values: intradayValues(gold, rate, fetchedDay, fetchedAt) };
+      if (!activeDays) showToday(availableToday);
+    } catch {
+      if (!activeDays) {
+        if (availableToday?.start === beijingDay(Date.now()) && availableToday.values.length) {
+          todayRefreshStatus.hidden = false;
+        } else {
+          showMessage("今日盘中金价暂时无法加载。", true);
+        }
+      }
+    } finally {
+      loadingToday = false;
     }
   }
 
@@ -318,6 +454,9 @@
   rangeButtons.forEach((button) => {
     button.addEventListener("click", () => chooseRange(Number(button.dataset.historyDays)));
   });
-  retry.addEventListener("click", loadHistory);
+  retry.addEventListener("click", () => (activeDays ? loadHistory() : loadToday()));
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && !activeDays) loadToday();
+  });
   loadHistory();
 }
