@@ -10,6 +10,7 @@
   <script src="./app.js" defer></script>
   <script src="./history.js" defer></script>
   <script src="./domestic.js" defer></script>
+  <script src="./reserves.js" defer></script>
   <script src="./guide.js" defer></script>
 </head>
 <body>
@@ -22,6 +23,7 @@
       <nav class="header-nav" aria-label="页面导航">
         <a class="header-link" href="#history">金价走势 <span aria-hidden="true">↘</span></a>
         <a class="header-link" href="#domestic-gold">国内金价对照 <span aria-hidden="true">↘</span></a>
+        <a class="header-link" href="#gold-reserves">央行黄金储备 <span aria-hidden="true">↘</span></a>
         <a class="header-link" href="#guide">行情指南 <span aria-hidden="true">↘</span></a>
         <a class="header-link" href="#method">换算依据 <span aria-hidden="true">↘</span></a>
       </nav>
@@ -200,6 +202,45 @@
           <p class="domestic-source"><a href="https://mybank.icbc.com.cn/icbc/newperbank/perbank3/gold/goldaccrual_query_out.jsp" target="_blank" rel="noopener noreferrer">工商银行积存金行情 <span aria-hidden="true">↗</span></a></p>
         </article>
       </div>
+    </section>
+
+    <section class="panel reserves-panel" id="gold-reserves" aria-labelledby="reserves-heading">
+      <div class="history-header">
+        <div>
+          <h2 id="reserves-heading">央行黄金储备</h2>
+          <p class="history-range" id="reserves-period">央行及其他货币当局的官方储备</p>
+        </div>
+        <div class="presets history-ranges" role="group" aria-label="黄金储备排名范围" id="reserves-ranges" hidden>
+          <button type="button" data-reserves-count="5" aria-pressed="true">前 5</button>
+          <button type="button" data-reserves-count="10" aria-pressed="false">前 10</button>
+          <button type="button" data-reserves-count="15" aria-pressed="false">前 15</button>
+          <button type="button" data-reserves-count="20" aria-pressed="false">前 20</button>
+        </div>
+      </div>
+      <p class="history-range" id="reserves-status" role="status">正在加载各国黄金储备…</p>
+      <div class="calendar-table-wrap" tabindex="0" role="region" aria-label="官方黄金储备排名" id="reserves-table-wrap" hidden>
+        <table class="calendar-table reserves-table" id="reserves-table">
+          <caption>按有官方数量记录的国家排序，各国报告月份见表。点击国家名查看月度明细。</caption>
+          <thead>
+            <tr>
+              <th scope="col">排名</th>
+              <th scope="col">国家</th>
+              <th scope="col">黄金储备（吨）</th>
+              <th scope="col">近一年净变动（吨）</th>
+              <th scope="col">增持参考均价（元 / 克）</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <p class="history-source">增持参考均价为市场价格估算。实际成交价未见可比的公开数据。</p>
+      <details class="history-details reserves-method">
+        <summary>购金价格估算与数据来源</summary>
+        <p>央行公开的储备量无法确定实际成交价。参考均价按相邻两个月的储备正增量加权，取对应月份的黄金市场均价，按当月美元兑人民币平均汇率折算。为降低微小统计波动的影响，估算只计入月增量至少 0.10 吨的月份。储备量变化也可能来自调拨、会计调整或统计修订。</p>
+        <p>排名仅含有官方数量记录的国家。近一年净变动使用同一比较期的起止月，缺少端点时留空。估算仅计入连续可比的月份，缺报月不作填补。</p>
+        <p>储备数量主要来自 <a href="https://data.imf.org/en/datasets/IMF.STA:IL" target="_blank" rel="noopener noreferrer">IMF 国际流动性数据库</a>。中国使用国家外汇管理局的 <a href="https://www.safe.gov.cn/safe/2025/0206/27115.html" target="_blank" rel="noopener noreferrer">2025 年</a>和 <a href="https://www.safe.gov.cn/safe/2026/0206/27116.html" target="_blank" rel="noopener noreferrer">2026 年数据</a>，俄罗斯和奥地利使用 <a href="https://data.imf.org/Datasets/IRFCL" target="_blank" rel="noopener noreferrer">IMF 国际储备与外汇流动性数据库</a>，乌兹别克斯坦补充<a href="https://cbu.uz/en/statistics/e-gdds/data/111574/" target="_blank" rel="noopener noreferrer">央行月报</a>。1 金衡盎司为 31.1034768 克。</p>
+        <p>黎巴嫩只展示窗口前最后一次可核实的储备量。土耳其按 IMF 申报总量展示，银行存放和掉期等安排会影响储备变化，因此该行不估算购金均价。<a href="https://www.gold.org/node/16208" target="_blank" rel="noopener noreferrer">土耳其口径说明</a></p>
+        <p>月度基准使用 <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener noreferrer">世界银行 Pink Sheet 黄金均价</a>与 <a href="https://fred.stlouisfed.org/series/EXCHUS" target="_blank" rel="noopener noreferrer">美联储月度美元兑人民币汇率</a>。</p>
+      </details>
     </section>
 
     <section class="panel guide" id="guide" aria-labelledby="guide-heading">

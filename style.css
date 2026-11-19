@@ -337,6 +337,17 @@ footer a { text-decoration: underline; text-underline-offset: 4px; }
 .calendar-tag { margin-inline-start: 5px; font-size: 11px; color: #e4c898; white-space: nowrap; }
 .calendar-links { margin-top: 9px; }
 
+.reserves-panel { margin-top: 18px; scroll-margin-top: 20px; }
+.reserves-table { min-width: 530px; }
+.reserves-table tbody:nth-of-type(even) > tr { background: #211e18; }
+.reserves-table small { display: block; color: var(--muted); margin-top: 3px; font-size: 11px; }
+.reserves-country { padding: 4px 0; border: 0; background: transparent; color: #e4c898; text-decoration: underline; text-underline-offset: 3px; }
+.reserves-country::after { content: "▸"; display: inline-block; margin-inline-start: 5px; text-decoration: none; }
+.reserves-country[aria-expanded="true"]::after { content: "▾"; }
+.reserves-monthly { width: 100%; background: #1b1915; }
+.reserves-method p { max-width: 90ch; margin-block: 6px; }
+.reserves-method a { color: #e4c898; text-decoration: underline; text-underline-offset: 3px; }
+
 .guide-callout { margin-top: 14px; border-inline-start: 2px solid #b58b49; padding: 10px 13px; background: #272117; }
 .guide-callout strong { font-size: 13px; color: #f2d397; }
 .guide-subheading { margin-top: 19px; }
