@@ -3,6 +3,7 @@
 function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, deltaTonnes }) {
   const section = byId("reserves-comparison");
   const countryPicker = byId("reserves-country-picker");
+  const quickOptions = byId("reserves-quick-options");
   const rankOptions = byId("reserves-rank-options");
   const monthlyDetails = byId("reserves-month-details");
   const monthSelect = byId("reserves-chart-month");
@@ -15,13 +16,14 @@ function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, d
     { canvas: byId("reserves-change-chart"), kind: "change", geometry: null },
   ];
   let current = ranked.find(({ code }) => code === "CN") ?? ranked[0];
+  const pinned = [current, ...ranked.filter((country) => country !== current).slice(0, 4)];
 
   function display(value, formatter) {
     return Number.isFinite(value) ? formatter.format(value) : "—";
   }
 
   function showOverview() {
-    byId("reserves-current-country").textContent = current.name;
+    byId("reserves-current-country").textContent = `${current.name}官方黄金储备`;
     byId("reserves-stock-value").textContent = display(current.latest, tonnes);
     byId("reserves-stock-note").textContent = `第 ${current.rank} 名 · ${current.latestMonth} 报告`;
     byId("reserves-net-value").textContent = display(current.net, deltaTonnes);
@@ -68,7 +70,22 @@ function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, d
     showMonth();
   }
 
-  const choices = ranked.map((country) => {
+  function selectCountry(country) {
+    current = country;
+    countryPicker.open = false;
+    showCountry();
+  }
+
+  const quickChoices = pinned.map((country) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = country.name;
+    button.addEventListener("click", () => selectCountry(country));
+    quickOptions.append(button);
+    return { button, country };
+  });
+
+  const rankChoices = ranked.map((country) => {
     const item = document.createElement("li");
     const button = document.createElement("button");
     button.type = "button";
@@ -79,16 +96,15 @@ function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, d
     item.append(button);
     rankOptions.append(item);
     button.addEventListener("click", () => {
-      current = country;
-      showCountry();
-      countryPicker.open = false;
+      selectCountry(country);
       countryPicker.querySelector("summary").focus();
     });
     return { button, country };
   });
 
   function showCountry() {
-    for (const { button, country } of choices) button.setAttribute("aria-current", String(country === current));
+    for (const { button, country } of quickChoices) button.setAttribute("aria-pressed", String(country === current));
+    for (const { button, country } of rankChoices) button.setAttribute("aria-current", String(country === current));
     showOverview();
     showMonthlyTable();
   }

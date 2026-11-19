@@ -211,13 +211,16 @@
       <p class="history-range" id="reserves-period">央行及其他货币当局的官方储备</p>
       <p class="history-range" id="reserves-status" role="status">正在加载各国黄金储备…</p>
       <div class="reserves-dashboard" id="reserves-comparison" hidden>
-        <details id="reserves-country-picker" class="reserves-picker">
-          <summary><strong id="reserves-current-country">中国</strong> <span>切换国家</span></summary>
-          <ol class="reserves-rank-options" id="reserves-rank-options" aria-label="黄金储备前 20 名"></ol>
-        </details>
+        <div class="reserves-country-controls">
+          <div class="presets reserves-quick-options" id="reserves-quick-options" role="group" aria-label="国家快捷切换"></div>
+          <details id="reserves-country-picker" class="reserves-picker">
+            <summary>全部 20 国</summary>
+            <ol class="reserves-rank-options" id="reserves-rank-options" aria-label="黄金储备前 20 名"></ol>
+          </details>
+        </div>
         <dl class="reserves-overview" aria-label="当前国家的黄金储备摘要">
           <div>
-            <dt>官方黄金储备</dt>
+            <dt id="reserves-current-country" aria-live="polite">中国官方黄金储备</dt>
             <dd class="reserves-figure"><strong id="reserves-stock-value"></strong> 吨</dd>
             <dd class="reserves-card-note" id="reserves-stock-note"></dd>
           </div>

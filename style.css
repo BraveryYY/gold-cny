@@ -339,10 +339,12 @@ footer a { text-decoration: underline; text-underline-offset: 4px; }
 
 .reserves-panel { margin-top: 18px; scroll-margin-top: 20px; }
 .reserves-dashboard { margin-top: 16px; scroll-margin-top: 20px; }
+.reserves-country-controls { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 10px; }
+.reserves-quick-options { flex: 0 1 auto; flex-wrap: wrap; min-width: 0; }
+.reserves-quick-options button { padding-inline: 10px; font-size: 12px; }
 .reserves-picker { border: 1px solid var(--border); border-radius: 8px; background: #1b1915; min-width: 0; }
-.reserves-picker:not([open]) { width: fit-content; }
+.reserves-picker[open] { flex-basis: 100%; }
 .reserves-picker summary, .reserves-month-details summary { padding: 9px 11px; color: #e4c898; cursor: pointer; font-size: 13px; }
-.reserves-picker summary strong { color: var(--paper); margin-inline-end: 4px; }
 .reserves-picker summary:focus-visible, .reserves-month-details summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 7px; }
 .reserves-rank-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0 10px 10px; list-style: none; }
 .reserves-rank-options button { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: #211e18; color: var(--paper); text-align: start; font-size: 12px; }
