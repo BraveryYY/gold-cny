@@ -6,6 +6,7 @@
 - 历史走势可切换 7、30、90、180 天，随区间更新高低点、涨跌幅和每日数据。
 - 「国内金价对照」读取本站发布的 [`domestic-quotes.json`](domestic-quotes.json)，展示上金所 Au99.99 收盘、水贝金条挂牌及建行、工行主动积存参考买入快照。「刷新行情」重读文件，并分别标明本站读取时间和各来源的报价时间或日期。
 - 「央行黄金储备」默认展示中国，快捷栏固定显示中国和储备排名最前的另外四国，也可展开前 20 名切换。折线图、柱状图和默认收起的月度明细显示所选国家截至最新报告月的近 12 个月。估算价使用可比月份的储备正增量与对应月份的市场金价。
+- 「全球央行购入与卖出参考」展示近 12 个月已报告储备量的正向及负向变化合计。只统计相邻两个月均报实物量的国家和地区，逐月标出覆盖数。两侧数值均由储备变化推算，可能包括调拨、掉期和统计调整。
 - 行情指南解释金价驱动因素，附可复制的观察模板。观察日历覆盖 2026-11-18 至 2027-11-18，按该日已公布的官方日程整理。
 
 ## 本地预览
@@ -24,7 +25,8 @@ python3 -m http.server 8000
 - [NIST](https://www.nist.gov/pml/owm/metric-si/unit-conversion/precious-metals-conversion-information) 提供金衡盎司换算依据。人民币金价（元／克）＝美元金价 × 美元兑人民币汇率 ÷ 31.1034768。
 - [`central-bank-reserves.json`](central-bank-reserves.json) 的官方黄金数量主要取自 [IMF 国际流动性数据库](https://data.imf.org/en/datasets/IMF.STA:IL)的 `RGV_REVS.FTO.M`。俄罗斯、奥地利、法国、意大利、荷兰和西班牙使用 [IMF 储备数据库](https://data.imf.org/Datasets/IRFCL)的 `IRFCLDT1_IRFCL56V_FTO.S1XS1311.M`。中国取自[国家外汇管理局](https://www.safe.gov.cn/safe/2026/0206/27116.html)，其他补充来源列在网页「购金价格估算与数据来源」中。金衡盎司折算为公吨，缺报月留空。各国按最后有效储备量排名并标注报告月。市场金价使用[世界银行 Pink Sheet](https://www.worldbank.org/en/research/commodity-markets)和[美联储 EXCHUS](https://fred.stlouisfed.org/series/EXCHUS)的月均值折算为人民币元／克。
 - 月度补数时，`months`、`benchmark` 和每国的 `holdings` 按月份对齐。缺报储备量或暂未公布的市场基准用 `null`，新数据可补齐旧缺口。同一月份已有核实值继续保留。若增持月缺少市场基准，先展示储备和已报告月份，参考均价待基准补齐。
+- [`global-gold-flows.json`](global-gold-flows.json) 从 IMF 国际流动性实物黄金序列汇总已报告经济体的月末储备环比变化，按正、负变化分别求和，负向合计以正的吨数存储。地区及机构汇总序列不纳入，近月有更多报告时补齐覆盖。
 
 ## 发布方式
 
-GitHub Pages 从 `main` 分支根目录发布静态文件。页面入口为 `index.html`。
+[GitHub Actions](https://github.com/BraveryYY/gold-cny/actions/workflows/pages.yml) 从 `main` 发布 GitHub Pages，页面入口为 `index.html`。工作流每月 8 日和 25 日北京时间 10 点核对官方月报，也可在 Actions 中手动运行。若确认有新储备量，工作流补进快照并在同一次运行中部署。各国继续显示最近已核实的报告月份。

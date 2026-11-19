@@ -44,10 +44,10 @@ const drawReserveChart = (() => {
     }
   }
 
-  function drawBars(context, values, xFor, yFor, monthWidth) {
+  function drawBars(context, values, xFor, yFor, monthWidth, color) {
     const baseline = yFor(0);
     const barWidth = Math.min(monthWidth * .68, 44);
-    context.fillStyle = chartColor;
+    context.fillStyle = color;
     for (const [index, value] of values.entries()) {
       if (!Number.isFinite(value)) continue;
       const x = xFor(index) - barWidth / 2;
@@ -60,7 +60,7 @@ const drawReserveChart = (() => {
     }
   }
 
-  return function drawReserveChart(canvas, { months, values, kind, activeIndex = -1 }) {
+  return function drawReserveChart(canvas, { months, values, outflows = [], kind, activeIndex = -1 }) {
     const context = canvas.getContext("2d");
     const { width, height } = canvas.getBoundingClientRect();
     if (!context || !width || !height) return null;
@@ -72,7 +72,7 @@ const drawReserveChart = (() => {
     context.font = font;
     context.fillStyle = labelColor;
 
-    const observed = values.filter(Number.isFinite);
+    const observed = [...values, ...outflows].filter(Number.isFinite);
     if (!months.length || !observed.length) {
       context.textAlign = "center";
       context.textBaseline = "middle";
@@ -130,8 +130,10 @@ const drawReserveChart = (() => {
       context.setLineDash([]);
     }
 
-    if (isChange) drawBars(context, values, xFor, yFor, monthWidth);
-    else drawLine(context, values, xFor, yFor);
+    if (isChange) {
+      drawBars(context, values, xFor, yFor, monthWidth, chartColor);
+      drawBars(context, outflows, xFor, yFor, monthWidth, "#d89482");
+    } else drawLine(context, values, xFor, yFor);
 
     return {
       indexAt(x) {

@@ -10,9 +10,10 @@
   <script src="./app.js" defer></script>
   <script src="./history.js" defer></script>
   <script src="./domestic.js" defer></script>
-  <script src="./reserves-charts.js" defer></script>
+  <script src="./reserves-charts.js?v=20261119-global" defer></script>
   <script src="./reserves-comparison.js?v=20261119-oct" defer></script>
   <script src="./reserves.js?v=20261119-monthly" defer></script>
+  <script src="./global-gold-flows.js" defer></script>
   <script src="./guide.js" defer></script>
 </head>
 <body>
@@ -276,6 +277,30 @@
         <p>黎巴嫩只展示窗口前最后一次可核实的储备量。土耳其按 IMF 申报总量展示，银行存放和掉期等安排会影响储备变化，因此该行不估算购金均价。<a href="https://www.gold.org/node/16208" target="_blank" rel="noopener noreferrer">土耳其口径说明</a></p>
         <p>月度基准使用 <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener noreferrer">世界银行 Pink Sheet 黄金均价</a>与 <a href="https://fred.stlouisfed.org/series/EXCHUS" target="_blank" rel="noopener noreferrer">美联储月度美元兑人民币汇率</a>。</p>
       </details>
+      <section class="global-gold-flows" id="global-gold-flows" aria-labelledby="global-gold-heading">
+        <div class="history-header">
+          <div>
+            <h3 id="global-gold-heading">全球央行购入与卖出参考</h3>
+            <p class="history-range" id="global-gold-period">过去 12 个月 · 已报告储备变动</p>
+          </div>
+          <div class="reserves-month-control" id="global-gold-controls" hidden>
+            <label for="global-gold-month">查看月份</label>
+            <select id="global-gold-month"></select>
+          </div>
+        </div>
+        <p class="history-range" id="global-gold-status" role="status">正在加载全球储备变动…</p>
+        <div id="global-gold-results" hidden>
+          <dl class="global-gold-stats" aria-live="polite">
+            <div><dt class="global-gold-legend">购入侧（净增持）</dt><dd><strong id="global-gold-purchases"></strong> 吨</dd></div>
+            <div><dt class="global-gold-legend global-gold-sales">卖出侧（净减持）</dt><dd><strong id="global-gold-sales"></strong> 吨</dd></div>
+            <div><dt>报告覆盖</dt><dd><strong id="global-gold-reporters"></strong> 个经济体</dd></div>
+          </dl>
+          <figure class="reserves-chart-frame reserves-chart-figure">
+            <canvas class="reserves-chart" id="global-gold-chart" role="img" aria-labelledby="global-gold-heading" aria-describedby="global-gold-note"></canvas>
+          </figure>
+        </div>
+        <p class="history-source" id="global-gold-note">按相邻两月均有报告的经济体汇总实物黄金储备变动。零线上方是净增持之和，下方是净减持之和。储备变动也可能来自调拨、掉期和统计调整。各月覆盖范围不同，近期数据会补录。<a href="https://data.imf.org/en/datasets/IMF.STA:IL" target="_blank" rel="noopener noreferrer">IMF 国际流动性数据</a></p>
+      </section>
     </section>
 
     <section class="panel guide" id="guide" aria-labelledby="guide-heading">

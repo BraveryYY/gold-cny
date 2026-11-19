@@ -375,6 +375,14 @@ footer a { text-decoration: underline; text-underline-offset: 4px; }
 .reserves-month-reading tbody tr.is-active th { color: #f3d290; }
 .reserves-method p { max-width: 90ch; margin-block: 6px; }
 .reserves-method a { color: #e4c898; text-decoration: underline; text-underline-offset: 3px; }
+.global-gold-flows { margin-top: 17px; padding-top: 16px; border-top: 1px solid var(--border); scroll-margin-top: 20px; }
+.global-gold-flows h3 { margin: 0; color: var(--paper); font-size: 17px; }
+.global-gold-stats { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 11px 0; color: var(--muted); font-size: 12px; }
+.global-gold-stats > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; }
+.global-gold-stats dd { margin: 0; }
+.global-gold-stats strong { color: var(--paper); font-size: 14px; font-variant-numeric: tabular-nums; }
+.global-gold-legend::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-inline-end: 5px; border-radius: 2px; background: #edc570; }
+.global-gold-sales::before { background: #d89482; }
 
 @media (max-width: 540px) {
   .reserves-rank-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }

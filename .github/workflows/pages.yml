@@ -1,0 +1,85 @@
+name: Publish gold dashboard
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 2 8,25 * *'
+  workflow_dispatch:
+    inputs:
+      refresh:
+        description: Refresh official gold reserve data before publishing
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gold-dashboard-pages
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      commit: ${{ steps.snapshot.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - name: Check official reserve sources
+        run: python3 scripts/update_reserves.py
+      - name: Commit updated snapshots
+        id: snapshot
+        run: |
+          git add -- central-bank-reserves.json global-gold-flows.json
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Update monthly gold reserve data'
+            git push origin HEAD:refs/heads/main
+          fi
+          printf 'commit=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: refresh
+    # Pushes publish the current main, including any snapshot committed while this run was queued.
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && (needs.refresh.result == 'success' || needs.refresh.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.refresh.outputs.commit || 'main' }}
+          persist-credentials: false
+      - uses: actions/configure-pages@v5
+      - name: Stage public assets
+        run: |
+          mkdir _site
+          cp -- index.html ./*.css ./*.js ./*.webp central-bank-reserves.json domestic-quotes.json global-gold-flows.json _site/
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
