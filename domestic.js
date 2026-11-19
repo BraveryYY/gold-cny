@@ -6,7 +6,6 @@
     : "./domestic-quotes.json";
   const readTime = byId("domestic-read-time");
   const refreshNote = byId("domestic-refresh-note");
-  const sourceLink = byId("sge-source-link");
   const priceFormat = new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 });
   const readTimeFormat = new Intl.DateTimeFormat("zh-CN", {
     timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit",
@@ -43,10 +42,6 @@
     setTime(byId("ccb-quote-time"), ccb.quoteTime, ccb.quoteTime.slice(0, 19).replace("T", " "));
     setTime(byId("icbc-quote-date"), icbc.quoteDate, icbc.quoteDate);
     setTime(byId("icbc-page-time"), icbc.pageTime, icbc.pageTime.slice(0, 19).replace("T", " "));
-    const url = new URL(sourceLink.href);
-    url.searchParams.set("start_date", sge.tradeDate);
-    url.searchParams.set("end_date", sge.tradeDate);
-    sourceLink.href = url.href;
   }
 
   async function readDomesticQuotes() {

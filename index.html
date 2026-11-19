@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
   <script src="./history.js" defer></script>
-  <script src="./domestic.js" defer></script>
+  <script src="./domestic.js?v=20261119-snapshot" defer></script>
   <script src="./reserves-charts.js?v=20261119-global" defer></script>
   <script src="./reserves-comparison.js?v=20261119-oct" defer></script>
   <script src="./reserves.js?v=20261119-monthly" defer></script>
@@ -156,8 +156,9 @@
     <section class="panel domestic-gold" id="domestic-gold" aria-labelledby="domestic-gold-heading">
       <div class="domestic-gold-heading">
         <h2 id="domestic-gold-heading">国内金价对照</h2>
-        <p role="status">已核实报价快照 · 北京时间<span hidden> · 本站读取 <time id="domestic-read-time"></time></span></p>
+        <p role="status">手动核实报价 · 北京时间<span hidden> · 快照读取 <time id="domestic-read-time"></time></span></p>
       </div>
+      <p class="domestic-note">刷新会重新读取本站快照。最新报价请打开各卡片的来源链接。</p>
       <p class="domestic-note domestic-refresh-note" id="domestic-refresh-note" role="status" hidden></p>
       <div class="domestic-grid">
         <article class="domestic-quote" aria-labelledby="sge-gold-heading">
@@ -167,7 +168,7 @@
           <dl class="domestic-details">
             <div><dt>交易日</dt><dd><time id="sge-trade-date">—</time></dd></div>
           </dl>
-          <p class="domestic-source"><a id="sge-source-link" href="https://www.sge.com.cn/sjzx/quotation_daily_new?inst_ids=Au99.99" target="_blank" rel="noopener noreferrer">上海黄金交易所日行情 <span aria-hidden="true">↗</span></a></p>
+          <p class="domestic-source"><a href="https://www.sge.com.cn/sjzx/quotation_daily_new" target="_blank" rel="noopener noreferrer">上海黄金交易所最新日行情 <span aria-hidden="true">↗</span></a></p>
         </article>
 
         <article class="domestic-quote" aria-labelledby="waterbei-gold-heading">
