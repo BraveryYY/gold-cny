@@ -1,0 +1,22 @@
+{
+  "sge": {
+    "price": 810.79,
+    "tradeDate": "2026-11-18"
+  },
+  "waterbei": {
+    "price": 866,
+    "netPrice": 820,
+    "minFee": 5,
+    "maxFee": 15,
+    "quoteTime": "2026-11-19T12:05:00+08:00"
+  },
+  "ccb": {
+    "price": 803.71,
+    "quoteTime": "2026-11-19T12:11:54+08:00"
+  },
+  "icbc": {
+    "price": 800.41,
+    "quoteDate": "2026-11-19",
+    "pageTime": "2026-11-19T12:11:18+08:00"
+  }
+}

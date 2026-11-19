@@ -40,7 +40,7 @@
   let selected = 0;
   let highest = 0;
   let lowest = 0;
-  let activeDays = 30;
+  let activeDays = 0;
   let windowEnd;
   let availableHistory = null;
   let loading = false;
@@ -455,8 +455,10 @@
     button.addEventListener("click", () => chooseRange(Number(button.dataset.historyDays)));
   });
   retry.addEventListener("click", () => (activeDays ? loadHistory() : loadToday()));
+  refreshButton.addEventListener("click", loadToday);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && !activeDays) loadToday();
   });
-  loadHistory();
+  chooseRange(activeDays);
+  if (!window.location.hash) window.location.replace("#history");
 }

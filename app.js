@@ -71,8 +71,8 @@ function render() {
   }
 }
 
-async function getJson(url) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(7000), credentials: "omit" });
+async function getJson(url, { cache = "default" } = {}) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(7000), credentials: "omit", cache });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json();
 }

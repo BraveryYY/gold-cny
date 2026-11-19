@@ -9,12 +9,13 @@
   <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
   <script src="./history.js" defer></script>
+  <script src="./domestic.js" defer></script>
   <script src="./guide.js" defer></script>
 </head>
 <body>
-  <header class="masthead">
+  <header class="masthead" id="top">
     <div class="shell masthead-inner">
-      <a class="brand" href="./" aria-label="黄金换算首页">
+      <a class="brand" href="#top" aria-label="回到黄金换算页首">
         <span class="brand-mark" aria-hidden="true"><span></span></span>
         黄金换算
       </a>
@@ -84,19 +85,19 @@
     <section class="panel history-panel" id="history" aria-labelledby="history-heading">
       <div class="history-header">
         <div>
-          <h2 id="history-heading">近 30 天人民币金价</h2>
-          <p class="history-range" id="history-range" aria-live="polite">日线参考价</p>
+          <h2 id="history-heading">今日人民币金价</h2>
+          <p class="history-range" id="history-range" aria-live="polite">15 分钟盘中参考价</p>
         </div>
         <div class="presets history-ranges" role="group" aria-label="走势图时间区间">
-          <button type="button" data-history-days="0" aria-pressed="false">今日走势</button>
+          <button type="button" data-history-days="0" aria-pressed="true">今日走势</button>
           <button type="button" data-history-days="7" aria-pressed="false">7 天</button>
-          <button type="button" data-history-days="30" aria-pressed="true">30 天</button>
+          <button type="button" data-history-days="30" aria-pressed="false">30 天</button>
           <button type="button" data-history-days="90" aria-pressed="false">90 天</button>
           <button type="button" data-history-days="180" aria-pressed="false">180 天</button>
         </div>
       </div>
       <div class="history-message" id="history-message">
-        <p id="history-status" role="status">正在加载历史金价…</p>
+        <p id="history-status" role="status">正在加载今日盘中金价…</p>
         <button class="refresh" id="history-retry" type="button" hidden>重试</button>
       </div>
       <div class="today-meta" id="today-meta" hidden>
@@ -128,20 +129,20 @@
         </div>
         <canvas id="history-chart" role="img" aria-label="人民币参考金价折线图，标有最高与最低价日期，具体数值见每日数据表"></canvas>
       </figure>
-      <p class="history-source" id="daily-source">
+      <p class="history-source" id="daily-source" hidden>
         金价日收盘（UTC）<a href="https://standardbullion.com/gold-price-api" target="_blank" rel="noopener noreferrer">Data by Standard Bullion</a>
         <span> · </span>美元兑人民币日度参考汇率 <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter</a>。
         休市日可能沿用上一报价。缺少同日金价或汇率的日期不绘制。区间涨跌幅按首末有效日收盘价计算。
       </p>
-      <p class="history-source" id="today-source" hidden>
+      <p class="history-source" id="today-source">
         盘中金价（15 分钟采样）<a href="https://standardbullion.com/gold-price-api" target="_blank" rel="noopener noreferrer">Data by Standard Bullion</a>
         <span> · </span>全图按同一日度美元兑人民币参考汇率折算 <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter</a>。
         区间涨跌幅按首末有效报价计算。
       </p>
       <details class="history-details" id="history-details" hidden>
-        <summary id="history-detail-label">查看每日数据</summary>
+        <summary id="history-detail-label">查看今日数据</summary>
         <table>
-          <thead><tr><th scope="col" id="history-time-heading">日期</th><th scope="col">参考金价（元 / 克）</th></tr></thead>
+          <thead><tr><th scope="col" id="history-time-heading">时间（北京时间）</th><th scope="col">参考金价（元 / 克）</th></tr></thead>
           <tbody id="history-rows"></tbody>
         </table>
       </details>
@@ -150,27 +151,28 @@
     <section class="panel domestic-gold" id="domestic-gold" aria-labelledby="domestic-gold-heading">
       <div class="domestic-gold-heading">
         <h2 id="domestic-gold-heading">国内金价对照</h2>
-        <p>已核实报价快照 · 北京时间</p>
+        <p role="status">已核实报价快照 · 北京时间<span hidden> · 本站读取 <time id="domestic-read-time"></time></span></p>
       </div>
+      <p class="domestic-note domestic-refresh-note" id="domestic-refresh-note" role="status" hidden></p>
       <div class="domestic-grid">
         <article class="domestic-quote" aria-labelledby="sge-gold-heading">
           <h3 id="sge-gold-heading">上金所 Au99.99</h3>
           <p class="domestic-kind">日行情收盘价</p>
-          <p class="domestic-price"><strong>810.79</strong> <span>元 / 克</span></p>
+          <p class="domestic-price"><strong id="sge-price">—</strong> <span>元 / 克</span></p>
           <dl class="domestic-details">
-            <div><dt>交易日</dt><dd><time datetime="2026-11-18">2026-11-18</time></dd></div>
+            <div><dt>交易日</dt><dd><time id="sge-trade-date">—</time></dd></div>
           </dl>
-          <p class="domestic-source"><a href="https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-11-18&amp;end_date=2026-11-18&amp;inst_ids=Au99.99" target="_blank" rel="noopener noreferrer">上海黄金交易所日行情 <span aria-hidden="true">↗</span></a></p>
+          <p class="domestic-source"><a id="sge-source-link" href="https://www.sge.com.cn/sjzx/quotation_daily_new?inst_ids=Au99.99" target="_blank" rel="noopener noreferrer">上海黄金交易所日行情 <span aria-hidden="true">↗</span></a></p>
         </article>
 
         <article class="domestic-quote" aria-labelledby="waterbei-gold-heading">
           <h3 id="waterbei-gold-heading">水贝金条</h3>
           <p class="domestic-kind">商户挂牌价 · 含税</p>
-          <p class="domestic-price"><strong>877</strong> <span>元 / 克</span></p>
+          <p class="domestic-price"><strong id="waterbei-price">—</strong> <span>元 / 克</span></p>
           <dl class="domestic-details">
-            <div><dt>不含税价</dt><dd>831 元 / 克</dd></div>
-            <div><dt>工费</dt><dd>两种口径均另计 <span class="domestic-amount">5–15 元 / 克</span></dd></div>
-            <div><dt>报价时间</dt><dd><time datetime="2026-11-18T19:25:00+08:00">2026-11-18 19:25</time></dd></div>
+            <div><dt>不含税价</dt><dd><span id="waterbei-net-price">—</span> 元 / 克</dd></div>
+            <div><dt>工费</dt><dd>两种口径均另计 <span class="domestic-amount"><span id="waterbei-fee">—</span> 元 / 克</span></dd></div>
+            <div><dt>报价时间</dt><dd><time id="waterbei-quote-time">—</time></dd></div>
           </dl>
           <p class="domestic-source"><a href="https://www.guijinshu.com/plugin.php?id=study_dz_goldapi" target="_blank" rel="noopener noreferrer">水贝贵金属网报价 <span aria-hidden="true">↗</span></a></p>
         </article>
@@ -178,12 +180,24 @@
         <article class="domestic-quote" aria-labelledby="ccb-gold-heading">
           <h3 id="ccb-gold-heading">建设银行</h3>
           <p class="domestic-kind">主动积存参考买入价</p>
-          <p class="domestic-price"><strong>810.98</strong> <span>元 / 克</span></p>
+          <p class="domestic-price"><strong id="ccb-price">—</strong> <span>元 / 克</span></p>
           <dl class="domestic-details">
-            <div><dt>报价时间</dt><dd><time datetime="2026-11-18T19:49:59+08:00">2026-11-18 19:49:59</time></dd></div>
+            <div><dt>报价时间</dt><dd><time id="ccb-quote-time">—</time></dd></div>
           </dl>
           <p class="domestic-note">成交以交易时报价为准。</p>
           <p class="domestic-source"><a href="https://www.ccb.com/chn/home/gold_new/cpjs/index.shtml" target="_blank" rel="noopener noreferrer">建设银行黄金积存行情 <span aria-hidden="true">↗</span></a></p>
+        </article>
+
+        <article class="domestic-quote" aria-labelledby="icbc-gold-heading">
+          <h3 id="icbc-gold-heading">工商银行</h3>
+          <p class="domestic-kind">积存金 · 主动积存参考买入价</p>
+          <p class="domestic-price"><strong id="icbc-price">—</strong> <span>元 / 克</span></p>
+          <dl class="domestic-details">
+            <div><dt>报价日期</dt><dd><time id="icbc-quote-date">—</time></dd></div>
+            <div><dt>页面时间</dt><dd><time id="icbc-page-time">—</time></dd></div>
+          </dl>
+          <p class="domestic-note">页面时间取自工行官网的更新时间。</p>
+          <p class="domestic-source"><a href="https://mybank.icbc.com.cn/icbc/newperbank/perbank3/gold/goldaccrual_query_out.jsp" target="_blank" rel="noopener noreferrer">工商银行积存金行情 <span aria-hidden="true">↗</span></a></p>
         </article>
       </div>
     </section>
