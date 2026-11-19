@@ -13,7 +13,7 @@
   <script src="./reserves-charts.js?v=20261119-global" defer></script>
   <script src="./reserves-comparison.js?v=20261119-oct" defer></script>
   <script src="./reserves.js?v=20261119-monthly" defer></script>
-  <script src="./global-gold-flows.js?v=20261119-net" defer></script>
+  <script src="./global-gold-flows.js?v=20261119-cumulative" defer></script>
   <script src="./guide.js" defer></script>
 </head>
 <body>
@@ -296,6 +296,7 @@
             <div><dt class="global-gold-legend global-gold-sales">卖出侧（净减持）</dt><dd><strong id="global-gold-sales"></strong> 吨</dd></div>
             <div><dt title="增持合计减去减持合计，最后四舍五入">当月净增持量</dt><dd><strong id="global-gold-net"></strong> 吨</dd></div>
             <div><dt>报告覆盖</dt><dd><strong id="global-gold-reporters"></strong> 个经济体</dd></div>
+            <div><dt title="图中 12 个月的净增持原始值相加，缺报月份不作填补">近 12 个月累计净增持量</dt><dd><strong id="global-gold-total-net"></strong> 吨</dd></div>
           </dl>
           <figure class="reserves-chart-frame reserves-chart-figure">
             <canvas class="reserves-chart" id="global-gold-chart" role="img" aria-labelledby="global-gold-heading" aria-describedby="global-gold-note"></canvas>

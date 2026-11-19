@@ -10,6 +10,7 @@
   const netFormat = new Intl.NumberFormat("zh-CN", {
     minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero",
   });
+  const formatNet = (net) => net === null ? "—" : netFormat.format(net);
 
   async function loadGlobalGoldFlows() {
     try {
@@ -22,6 +23,9 @@
       const months = rows.map(({ month }) => month);
       const values = rows.map(({ purchases }) => purchases);
       const outflows = rows.map(({ sales }) => sales === null ? null : -sales);
+      const monthlyNets = rows.map(({ purchases, sales }) => purchases === null || sales === null ? null : purchases - sales);
+      const totalNet = monthlyNets.length === 12 && monthlyNets.every(Number.isFinite)
+        ? monthlyNets.reduce((total, net) => total + net, 0) : null;
       let chart;
 
       function draw() {
@@ -29,10 +33,11 @@
       }
 
       function showMonth() {
-        const { purchases, sales, reporters } = rows[Number(selectedMonth.value)];
+        const index = Number(selectedMonth.value);
+        const { purchases, sales, reporters } = rows[index];
         byId("global-gold-purchases").textContent = purchases === null ? "—" : currencyFormat.format(purchases);
         byId("global-gold-sales").textContent = sales === null ? "—" : currencyFormat.format(sales);
-        byId("global-gold-net").textContent = purchases === null || sales === null ? "—" : netFormat.format(purchases - sales);
+        byId("global-gold-net").textContent = formatNet(monthlyNets[index]);
         byId("global-gold-reporters").textContent = reporters.length;
         draw();
       }
@@ -47,6 +52,7 @@
         showMonth();
       });
       byId("global-gold-period").textContent = `${months[0]} 至 ${months.at(-1)} · 已报告储备变动`;
+      byId("global-gold-total-net").textContent = formatNet(totalNet);
       const updateTime = Date.parse(updatedAt);
       if (Number.isFinite(updateTime)) {
         const time = byId("global-gold-updated-at");
