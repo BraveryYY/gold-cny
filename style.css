@@ -338,21 +338,16 @@ footer a { text-decoration: underline; text-underline-offset: 4px; }
 .calendar-links { margin-top: 9px; }
 
 .reserves-panel { margin-top: 18px; scroll-margin-top: 20px; }
-.reserves-comparison { margin-top: 16px; scroll-margin-top: 20px; }
-.reserves-comparison-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 8px; }
+.reserves-dashboard { margin-top: 16px; scroll-margin-top: 20px; }
 .reserves-picker { border: 1px solid var(--border); border-radius: 8px; background: #1b1915; min-width: 0; }
-.reserves-picker summary { padding: 9px 11px; color: #e4c898; cursor: pointer; font-size: 13px; }
+.reserves-picker:not([open]) { width: fit-content; }
+.reserves-picker summary, .reserves-month-details summary { padding: 9px 11px; color: #e4c898; cursor: pointer; font-size: 13px; }
 .reserves-picker summary strong { color: var(--paper); margin-inline-end: 4px; }
-.reserves-picker summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 7px; }
-.reserves-picker-body { padding: 0 10px 10px; }
-.reserves-rank-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 9px 0 0; padding: 0; list-style: none; }
+.reserves-picker summary:focus-visible, .reserves-month-details summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 7px; }
+.reserves-rank-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0 10px 10px; list-style: none; }
 .reserves-rank-options button { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: #211e18; color: var(--paper); text-align: start; font-size: 12px; }
-.reserves-rank-options button:hover, .reserves-rank-options button[aria-pressed="true"] { border-color: #9c7943; background: #302618; }
+.reserves-rank-options button:hover, .reserves-rank-options button[aria-current="true"] { border-color: #9c7943; background: #302618; }
 .reserves-rank-options small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
-.reserves-country-options { display: flex; flex-wrap: wrap; gap: 7px; }
-.reserves-country-options label { display: inline-flex; align-items: center; gap: 6px; padding: 4px 7px; border: 1px solid var(--border); border-radius: 6px; color: #ded3c0; cursor: pointer; font-size: 12px; }
-.reserves-country-options input { margin: 0; accent-color: var(--gold); }
-.reserves-clear { min-height: 30px; margin-top: 8px; padding-inline: 8px; font-size: 11px; }
 .reserves-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
 .reserves-overview > div { padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: #1b1915; }
 .reserves-overview > div:last-child { border-color: #5c4b2e; background: #252017; }
@@ -361,20 +356,16 @@ footer a { text-decoration: underline; text-underline-offset: 4px; }
 .reserves-figure { color: #d2c0a1; font-size: 11px; }
 .reserves-figure strong { color: var(--paper); font-size: clamp(18px, 2.5vw, 28px); font-weight: 650; font-variant-numeric: tabular-nums; }
 .reserves-card-note { color: var(--muted); font-size: 11px; line-height: 1.5; }
-.reserves-chart-legend { display: flex; flex-wrap: wrap; gap: 4px 13px; margin: 10px 0; padding: 0; list-style: none; color: #ded3c0; font-size: 12px; }
-.reserves-chart-legend li { display: inline-flex; align-items: center; }
-.reserves-series-dot { display: inline-block; width: 8px; height: 8px; margin-inline-end: 5px; border-radius: 50%; }
-.reserves-chart-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: #1b1915; }
-.reserves-chart-scroll:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.reserves-chart-frame { border: 1px solid var(--border); border-radius: 8px; background: #1b1915; }
 .reserves-chart-figure { margin: 0; padding: 12px 5px 5px; }
 .reserves-chart-figure + .reserves-chart-figure { border-top: 1px solid var(--border); }
 .reserves-chart-figure figcaption { padding-inline-start: 9px; color: #ecd0a0; font-size: 13px; font-weight: 600; }
 .reserves-chart { display: block; width: 100%; height: 220px; cursor: crosshair; }
-.reserves-month-control { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--muted); font-size: 12px; }
-.reserves-month-control h3 { flex: 1; margin: 0; color: var(--paper); font-size: 15px; }
+.reserves-month-details { margin-top: 10px; }
+.reserves-month-details summary { width: fit-content; padding-inline: 0; }
+.reserves-month-control { display: flex; align-items: center; gap: 8px; margin-top: 4px; color: var(--muted); font-size: 12px; }
 .reserves-month-control select { border: 1px solid var(--border); border-radius: 6px; background: #1b1915; color: var(--paper); font: inherit; padding: 4px 8px; }
 .reserves-month-reading th, .reserves-month-reading td { white-space: nowrap; }
-.reserves-month-reading th[scope="colgroup"] { text-align: center; }
 .reserves-month-reading .reserves-month-label { position: sticky; inset-inline-start: 0; z-index: 1; background: #1b1915; }
 .reserves-month-reading thead .reserves-month-label { background: #292318; }
 .reserves-month-reading tbody tr:nth-child(even) .reserves-month-label { background: #211e18; }
@@ -384,7 +375,7 @@ footer a { text-decoration: underline; text-underline-offset: 4px; }
 .reserves-method a { color: #e4c898; text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 540px) {
-  .reserves-comparison-controls { grid-template-columns: 1fr; }
+  .reserves-rank-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .reserves-overview > div { padding: 8px; }
   .reserves-figure strong { display: block; font-size: 17px; }
   .reserves-chart { height: 190px; }

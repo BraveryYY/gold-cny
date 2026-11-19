@@ -210,28 +210,11 @@
       <div class="history-header"><h2 id="reserves-heading">央行黄金储备</h2></div>
       <p class="history-range" id="reserves-period">央行及其他货币当局的官方储备</p>
       <p class="history-range" id="reserves-status" role="status">正在加载各国黄金储备…</p>
-      <div class="reserves-comparison" id="reserves-comparison" hidden>
-        <div class="reserves-comparison-controls">
-          <details id="reserves-country-picker" class="reserves-picker">
-            <summary><strong id="reserves-current-country">中国</strong> <span>切换国家</span></summary>
-            <div class="reserves-picker-body">
-              <div class="presets history-ranges" role="group" aria-label="黄金储备排名范围" id="reserves-ranges">
-                <button type="button" data-reserves-count="5" aria-pressed="true">前 5</button>
-                <button type="button" data-reserves-count="10" aria-pressed="false">前 10</button>
-                <button type="button" data-reserves-count="15" aria-pressed="false">前 15</button>
-                <button type="button" data-reserves-count="20" aria-pressed="false">前 20</button>
-              </div>
-              <ol class="reserves-rank-options" id="reserves-rank-options" aria-label="按官方黄金储备排名"></ol>
-            </div>
-          </details>
-          <details id="reserves-compare-picker" class="reserves-picker">
-            <summary>对比国家 <span id="reserves-selected-count" aria-live="polite"></span></summary>
-            <div class="reserves-picker-body">
-              <div class="reserves-country-options" id="reserves-country-options" role="group" aria-label="选择要对比的国家"></div>
-              <button class="refresh reserves-clear" id="reserves-chart-clear" type="button" disabled>清除对比</button>
-            </div>
-          </details>
-        </div>
+      <div class="reserves-dashboard" id="reserves-comparison" hidden>
+        <details id="reserves-country-picker" class="reserves-picker">
+          <summary><strong id="reserves-current-country">中国</strong> <span>切换国家</span></summary>
+          <ol class="reserves-rank-options" id="reserves-rank-options" aria-label="黄金储备前 20 名"></ol>
+        </details>
         <dl class="reserves-overview" aria-label="当前国家的黄金储备摘要">
           <div>
             <dt>官方黄金储备</dt>
@@ -249,31 +232,37 @@
             <dd class="reserves-card-note" id="reserves-estimate-note"></dd>
           </div>
         </dl>
-        <ul class="reserves-chart-legend" id="reserves-chart-legend" aria-label="图例"></ul>
-        <div class="reserves-chart-scroll" tabindex="0" role="region" aria-label="黄金储备月度图表">
-          <div id="reserves-chart-stack">
-            <figure class="reserves-chart-figure">
-              <figcaption id="reserves-stock-chart-heading">月末黄金储备量</figcaption>
-              <canvas class="reserves-chart" id="reserves-stock-chart" role="img" aria-labelledby="reserves-stock-chart-heading" aria-describedby="reserves-chart-note"></canvas>
-            </figure>
-            <figure class="reserves-chart-figure">
-              <figcaption id="reserves-change-chart-heading">单月储备增减</figcaption>
-              <canvas class="reserves-chart" id="reserves-change-chart" role="img" aria-labelledby="reserves-change-chart-heading" aria-describedby="reserves-chart-note"></canvas>
-            </figure>
+        <div class="reserves-chart-frame">
+          <figure class="reserves-chart-figure">
+            <figcaption id="reserves-stock-chart-heading">月末黄金储备量</figcaption>
+            <canvas class="reserves-chart" id="reserves-stock-chart" role="img" aria-labelledby="reserves-stock-chart-heading" aria-describedby="reserves-chart-note"></canvas>
+          </figure>
+          <figure class="reserves-chart-figure">
+            <figcaption id="reserves-change-chart-heading">单月储备增减</figcaption>
+            <canvas class="reserves-chart" id="reserves-change-chart" role="img" aria-labelledby="reserves-change-chart-heading" aria-describedby="reserves-chart-note"></canvas>
+          </figure>
+        </div>
+        <p class="history-source" id="reserves-chart-note">缺报处留空。单月增减按相邻月末储备之差计算。点击图中月份可展开明细并高亮对应行。</p>
+        <details class="reserves-month-details" id="reserves-month-details">
+          <summary id="reserves-monthly-heading">月度明细</summary>
+          <div class="reserves-month-control">
+            <label for="reserves-chart-month">定位月份</label>
+            <select id="reserves-chart-month"></select>
           </div>
-        </div>
-        <p class="history-source" id="reserves-chart-note">缺报处留空。单月增减按相邻月末储备之差计算。点击图中月份可高亮对应明细行。</p>
-        <div class="reserves-month-control">
-          <h3 id="reserves-monthly-heading">月度明细</h3>
-          <label for="reserves-chart-month">定位月份</label>
-          <select id="reserves-chart-month"></select>
-        </div>
-        <div class="calendar-table-wrap" tabindex="0" role="region" aria-labelledby="reserves-monthly-heading">
-          <table class="calendar-table reserves-month-reading" aria-labelledby="reserves-monthly-heading">
-            <thead id="reserves-month-head"></thead>
-            <tbody id="reserves-chart-reading"></tbody>
-          </table>
-        </div>
+          <div class="calendar-table-wrap" tabindex="0" role="region" aria-labelledby="reserves-monthly-heading">
+            <table class="calendar-table reserves-month-reading" aria-labelledby="reserves-monthly-heading">
+              <thead>
+                <tr>
+                  <th class="reserves-month-label" scope="col">月份</th>
+                  <th scope="col">月末储备（吨）</th>
+                  <th scope="col">单月增减（吨）</th>
+                  <th scope="col">市场金价（元 / 克）</th>
+                </tr>
+              </thead>
+              <tbody id="reserves-chart-reading"></tbody>
+            </table>
+          </div>
+        </details>
       </div>
       <details class="history-details reserves-method">
         <summary>购金价格估算与数据来源</summary>

@@ -4,6 +4,7 @@ const drawReserveChart = (() => {
   const labelColor = "#b3ab9c";
   const gridColor = "#433a2d";
   const zeroColor = "#81715b";
+  const chartColor = "#edc570";
   const font = "11px system-ui, sans-serif";
 
   function axisScale(min, max, isChange) {
@@ -22,9 +23,9 @@ const drawReserveChart = (() => {
     return { first: Math.floor(min / step) * step, last: Math.ceil(max / step) * step, step };
   }
 
-  function drawLine(context, { values, color }, xFor, yFor) {
-    context.strokeStyle = color;
-    context.fillStyle = color;
+  function drawLine(context, values, xFor, yFor) {
+    context.strokeStyle = chartColor;
+    context.fillStyle = chartColor;
     context.lineWidth = 2;
     context.lineJoin = "round";
     context.lineCap = "round";
@@ -43,29 +44,23 @@ const drawReserveChart = (() => {
     }
   }
 
-  function drawBars(context, series, xFor, yFor, monthWidth) {
+  function drawBars(context, values, xFor, yFor, monthWidth) {
     const baseline = yFor(0);
-    const groupWidth = Math.min(monthWidth * 0.82, Math.max(54, series.length * 7));
-    const slotWidth = groupWidth / series.length;
-    const barWidth = slotWidth * 0.82;
-    for (const [order, { values, color }] of series.entries()) {
-      context.fillStyle = color;
-      const offset = (order + 0.5) * slotWidth - (groupWidth + barWidth) / 2;
-      for (const [index, value] of values.entries()) {
-        if (!Number.isFinite(value)) continue;
-        const y = yFor(value);
-        const x = xFor(index) + offset;
-        if (value === 0) {
-          context.fillRect(x, baseline - 0.65, barWidth, 1.3);
-        } else {
-          const height = Math.max(Math.abs(y - baseline), 1);
-          context.fillRect(x, value > 0 ? baseline - height : baseline, barWidth, height);
-        }
+    const barWidth = Math.min(monthWidth * .68, 44);
+    context.fillStyle = chartColor;
+    for (const [index, value] of values.entries()) {
+      if (!Number.isFinite(value)) continue;
+      const x = xFor(index) - barWidth / 2;
+      if (value === 0) {
+        context.fillRect(x, baseline - 0.65, barWidth, 1.3);
+      } else {
+        const height = Math.max(Math.abs(yFor(value) - baseline), 1);
+        context.fillRect(x, value > 0 ? baseline - height : baseline, barWidth, height);
       }
     }
   }
 
-  return function drawReserveChart(canvas, { months, series, kind, activeIndex = -1 }) {
+  return function drawReserveChart(canvas, { months, values, kind, activeIndex = -1 }) {
     const context = canvas.getContext("2d");
     const { width, height } = canvas.getBoundingClientRect();
     if (!context || !width || !height) return null;
@@ -77,8 +72,8 @@ const drawReserveChart = (() => {
     context.font = font;
     context.fillStyle = labelColor;
 
-    const values = series.flatMap((entry) => entry.values).filter(Number.isFinite);
-    if (!months.length || !values.length) {
+    const observed = values.filter(Number.isFinite);
+    if (!months.length || !observed.length) {
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.fillText("暂无可绘制的月度数据", width / 2, height / 2);
@@ -86,7 +81,7 @@ const drawReserveChart = (() => {
     }
 
     const isChange = kind === "change";
-    const { first, last, step } = axisScale(Math.min(...values), Math.max(...values), isChange);
+    const { first, last, step } = axisScale(Math.min(...observed), Math.max(...observed), isChange);
     const format = new Intl.NumberFormat("zh-CN", {
       maximumFractionDigits: Math.min(8, Math.max(0, 1 - Math.floor(Math.log10(step)))),
       signDisplay: isChange ? "exceptZero" : "auto",
@@ -135,8 +130,8 @@ const drawReserveChart = (() => {
       context.setLineDash([]);
     }
 
-    if (isChange) drawBars(context, series, xFor, yFor, monthWidth);
-    else for (const entry of series) drawLine(context, entry, xFor, yFor);
+    if (isChange) drawBars(context, values, xFor, yFor, monthWidth);
+    else drawLine(context, values, xFor, yFor);
 
     return {
       indexAt(x) {
