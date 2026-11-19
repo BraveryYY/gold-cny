@@ -23,16 +23,21 @@
     });
     let pricedTonnes = 0;
     let indicativeCost = 0;
+    let missingPrice = false;
     changes.forEach((change, i) => {
+      if (change === null || change < minimumIncrease) return;
       const monthlyPrice = recentPrices[i];
-      if (change >= minimumIncrease && Number.isFinite(monthlyPrice)) {
-        pricedTonnes += change;
-        indicativeCost += change * monthlyPrice;
+      if (!Number.isFinite(monthlyPrice)) {
+        missingPrice = true;
+        return;
       }
+      pricedTonnes += change;
+      indicativeCost += change * monthlyPrice;
     });
     const net = Number.isFinite(holdings[start]) && Number.isFinite(holdings[end]) ? holdings[end] - holdings[start] : null;
     return {
-      code, net, estimateNote,
+      code, net,
+      estimateNote: estimateNote ?? (missingPrice ? "待公布同期市场价" : undefined),
       baseline: months[start],
       months: months.slice(start + 1, end + 1),
       holdings: recentHoldings,
@@ -41,7 +46,7 @@
       name: countriesInChinese.of(code),
       latest: holdings[latestIndex] ?? earlier?.tonnes,
       latestMonth: months[latestIndex] ?? earlier?.month,
-      estimate: !estimateNote && pricedTonnes > 0 ? indicativeCost / pricedTonnes : null,
+      estimate: !estimateNote && !missingPrice && pricedTonnes > 0 ? indicativeCost / pricedTonnes : null,
       observedMonths: changes.filter(Number.isFinite).length,
     };
   }
@@ -49,7 +54,8 @@
   async function loadReserves() {
     try {
       const { months, benchmark, countries } = await getJson(dataUrl, { cache: "no-cache" });
-      if (months.length <= monthsInYear || benchmark.length !== months.length || !benchmark.every(Number.isFinite) ||
+      const validPrices = benchmark.every((price) => price === null || (Number.isFinite(price) && price > 0));
+      if (months.length <= monthsInYear || benchmark.length !== months.length || !validPrices ||
           countries.length < 20 || !countries.every(({ holdings, earlier }) =>
             holdings.length === months.length && (holdings.some(Number.isFinite) || Number.isFinite(earlier?.tonnes)))) {
         throw new Error("Invalid gold reserve series");

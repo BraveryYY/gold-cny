@@ -12,7 +12,7 @@
   <script src="./domestic.js" defer></script>
   <script src="./reserves-charts.js" defer></script>
   <script src="./reserves-comparison.js?v=20261119-oct" defer></script>
-  <script src="./reserves.js?v=20261119-oct" defer></script>
+  <script src="./reserves.js?v=20261119-monthly" defer></script>
   <script src="./guide.js" defer></script>
 </head>
 <body>
@@ -269,7 +269,7 @@
       </div>
       <details class="history-details reserves-method">
         <summary>购金价格估算与数据来源</summary>
-        <p>央行公开的储备量无法确定实际成交价。参考均价按相邻两个月的储备正增量加权，取对应月份的黄金市场均价，按当月美元兑人民币平均汇率折算。为降低微小统计波动的影响，估算只计入月增量至少 0.10 吨的月份。储备量变化也可能来自调拨、会计调整或统计修订。</p>
+        <p>央行公开的储备量无法确定实际成交价。参考均价按相邻两个月的储备正增量加权，取对应月份的黄金市场均价，按当月美元兑人民币平均汇率折算。为降低微小统计波动的影响，估算只计入月增量至少 0.10 吨的月份。若这些月份的市场价暂缺，先显示储备量，参考均价待同期市场价公布后计算。储备量变化也可能来自调拨、会计调整或统计修订。</p>
         <p>各国的近 12 个月以各自最新可核实的报告月为终点，净变动与上年同月月末比。排名使用各国最新可核实储备量，各国的报告月份可能不同。缺报月不作填补。</p>
         <p>储备数量主要来自 <a href="https://data.imf.org/en/datasets/IMF.STA:IL" target="_blank" rel="noopener noreferrer">IMF 国际流动性数据库</a>。俄罗斯、奥地利、法国、意大利、荷兰和西班牙使用 <a href="https://data.imf.org/Datasets/IRFCL" target="_blank" rel="noopener noreferrer">IMF 国际储备与外汇流动性序列</a>。中国使用国家外汇管理局的 <a href="https://www.safe.gov.cn/safe/2025/0206/27115.html" target="_blank" rel="noopener noreferrer">2025 年</a>和 <a href="https://www.safe.gov.cn/safe/2026/0206/27116.html" target="_blank" rel="noopener noreferrer">2026 年数据</a>。1 金衡盎司为 31.1034768 克。</p>
         <p>补充数据来自 <a href="https://fiscaldata.treasury.gov/datasets/status-report-government-gold-reserve/u-s-treasury-owned-gold" target="_blank" rel="noopener noreferrer">美国财政部</a>、<a href="https://www.bundesbank.de/en/statistics/statistical-release-calendar/international-reserves-822890" target="_blank" rel="noopener noreferrer">德国联邦银行</a>、<a href="https://www.oenb.at/isawebstat/stabfrage/createReport?lang=EN&amp;report=11.1" target="_blank" rel="noopener noreferrer">奥地利央行</a>、<a href="https://data.ecb.europa.eu/data/datasets/RAS/RAS.M.N.PT.W1.S121.S1.LE.A.FA.R.F11._Z.XGO.XAU._Z.N.ALL" target="_blank" rel="noopener noreferrer">欧洲央行葡萄牙序列</a>、<a href="https://cbu.uz/en/statistics/e-gdds/data/111574/" target="_blank" rel="noopener noreferrer">乌兹别克斯坦央行</a>和<a href="https://mof.gov.sa/ar/statistics" target="_blank" rel="noopener noreferrer">沙特财政部</a>。</p>
