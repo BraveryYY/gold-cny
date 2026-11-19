@@ -10,6 +10,8 @@
   <script src="./app.js" defer></script>
   <script src="./history.js" defer></script>
   <script src="./domestic.js" defer></script>
+  <script src="./reserves-charts.js" defer></script>
+  <script src="./reserves-comparison.js" defer></script>
   <script src="./reserves.js" defer></script>
   <script src="./guide.js" defer></script>
 </head>
@@ -233,6 +235,46 @@
         </table>
       </div>
       <p class="history-source">增持参考均价为市场价格估算。实际成交价未见可比的公开数据。</p>
+      <section class="reserves-comparison" id="reserves-comparison" aria-labelledby="reserves-comparison-heading" hidden>
+        <h3 id="reserves-comparison-heading" tabindex="-1">月度储备对比</h3>
+        <div class="reserves-comparison-controls">
+          <details id="reserves-picker" class="history-details reserves-picker">
+            <summary>选择国家 <span id="reserves-selected-count" aria-live="polite"></span></summary>
+            <div class="reserves-country-options" id="reserves-country-options" role="group" aria-label="选择图表中的国家"></div>
+          </details>
+          <div class="presets" aria-label="国家选择操作" role="group">
+            <button id="reserves-chart-top-five" type="button">选前 5 名</button>
+            <button id="reserves-chart-clear" type="button">清空选择</button>
+          </div>
+        </div>
+        <ul class="reserves-chart-legend" id="reserves-chart-legend" aria-label="图例"></ul>
+        <p class="history-range" id="reserves-chart-empty" role="status" hidden>请选择至少一个国家。</p>
+        <div id="reserves-chart-results" hidden>
+          <div class="reserves-chart-scroll" tabindex="0" role="region" aria-label="黄金储备月度图表">
+            <div class="reserves-chart-stack" id="reserves-chart-stack">
+              <figure class="reserves-chart-figure">
+                <figcaption id="reserves-stock-chart-heading">月末黄金储备量</figcaption>
+                <canvas class="reserves-chart" id="reserves-stock-chart" role="img" aria-labelledby="reserves-stock-chart-heading" aria-describedby="reserves-chart-note"></canvas>
+              </figure>
+              <figure class="reserves-chart-figure">
+                <figcaption id="reserves-change-chart-heading">单月储备增减</figcaption>
+                <canvas class="reserves-chart" id="reserves-change-chart" role="img" aria-labelledby="reserves-change-chart-heading" aria-describedby="reserves-chart-note"></canvas>
+              </figure>
+            </div>
+          </div>
+          <p class="history-source" id="reserves-chart-note">缺报处留空。单月增减按相邻月末储备之差计算。点击图中月份或使用下方菜单查看数值。</p>
+          <div class="reserves-month-control">
+            <label for="reserves-chart-month">查看月份</label>
+            <select id="reserves-chart-month"></select>
+          </div>
+          <div class="calendar-table-wrap" tabindex="0" role="region" aria-label="所选月份的储备数值">
+            <table class="calendar-table reserves-month-reading">
+              <thead><tr><th scope="col">国家</th><th scope="col">月末黄金储备（吨）</th><th scope="col">当月增减（吨）</th></tr></thead>
+              <tbody id="reserves-chart-reading"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
       <details class="history-details reserves-method">
         <summary>购金价格估算与数据来源</summary>
         <p>央行公开的储备量无法确定实际成交价。参考均价按相邻两个月的储备正增量加权，取对应月份的黄金市场均价，按当月美元兑人民币平均汇率折算。为降低微小统计波动的影响，估算只计入月增量至少 0.10 吨的月份。储备量变化也可能来自调拨、会计调整或统计修订。</p>

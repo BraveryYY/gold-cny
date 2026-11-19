@@ -341,10 +341,31 @@ footer a { text-decoration: underline; text-underline-offset: 4px; }
 .reserves-table { min-width: 530px; }
 .reserves-table tbody:nth-of-type(even) > tr { background: #211e18; }
 .reserves-table small { display: block; color: var(--muted); margin-top: 3px; font-size: 11px; }
-.reserves-country { padding: 4px 0; border: 0; background: transparent; color: #e4c898; text-decoration: underline; text-underline-offset: 3px; }
+.reserves-country, .reserves-chart-jump { padding: 4px 0; border: 0; background: transparent; color: #e4c898; text-decoration: underline; text-underline-offset: 3px; }
 .reserves-country::after { content: "▸"; display: inline-block; margin-inline-start: 5px; text-decoration: none; }
 .reserves-country[aria-expanded="true"]::after { content: "▾"; }
+.reserves-chart-jump::after { content: "↘"; margin-inline-start: 5px; }
 .reserves-monthly { width: 100%; background: #1b1915; }
+.reserves-comparison { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); scroll-margin-top: 20px; }
+.reserves-comparison h3 { margin: 0 0 10px; font-size: 16px; font-weight: 650; }
+.reserves-comparison-controls { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 12px; }
+.reserves-picker { flex: 1 1 160px; margin-top: 0; }
+.reserves-picker summary { min-height: 35px; padding-block: 7px; font-size: 13px; }
+.reserves-country-options { display: flex; flex-wrap: wrap; gap: 7px; margin: 4px 0; }
+.reserves-country-options label { display: inline-flex; align-items: center; gap: 6px; padding: 4px 7px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
+.reserves-country-options input { margin: 0; accent-color: var(--gold); }
+.reserves-chart-legend { display: flex; flex-wrap: wrap; gap: 4px 13px; margin: 10px 0; padding: 0; list-style: none; color: #ded3c0; font-size: 12px; }
+.reserves-chart-legend li { display: inline-flex; align-items: center; }
+.reserves-series-dot { display: inline-block; width: 8px; height: 8px; margin-inline-end: 5px; border-radius: 50%; }
+.reserves-chart-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: #1b1915; }
+.reserves-chart-scroll:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.reserves-chart-figure { margin: 0; padding: 12px 5px 5px; }
+.reserves-chart-figure + .reserves-chart-figure { border-top: 1px solid var(--border); }
+.reserves-chart-figure figcaption { padding-inline-start: 9px; color: #ecd0a0; font-size: 13px; font-weight: 600; }
+.reserves-chart { display: block; width: 100%; height: 220px; cursor: crosshair; }
+.reserves-month-control { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+.reserves-month-control select { border: 1px solid var(--border); border-radius: 6px; background: #1b1915; color: var(--paper); font: inherit; padding: 4px 8px; }
+.reserves-month-reading th, .reserves-month-reading td { white-space: nowrap; }
 .reserves-method p { max-width: 90ch; margin-block: 6px; }
 .reserves-method a { color: #e4c898; text-decoration: underline; text-underline-offset: 3px; }
 

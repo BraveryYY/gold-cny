@@ -67,7 +67,7 @@
     return detail;
   }
 
-  function countryRows(country, rank, months, benchmark) {
+  function countryRows(country, rank, months, benchmark, showCountryOnCharts) {
     const group = document.createElement("tbody");
     const row = group.insertRow();
     appendCell(row, "td", rank);
@@ -100,7 +100,12 @@
       if (!detail.cells.length) {
         const container = detail.insertCell();
         container.colSpan = row.cells.length;
-        container.append(monthlyTable(country, months, benchmark));
+        const chartButton = document.createElement("button");
+        chartButton.type = "button";
+        chartButton.className = "reserves-chart-jump";
+        chartButton.textContent = `在图表中只看${country.name}`;
+        chartButton.addEventListener("click", () => showCountryOnCharts(country.code));
+        container.append(chartButton, monthlyTable(country, months, benchmark));
       }
       detail.hidden = !detail.hidden;
       button.setAttribute("aria-expanded", String(!detail.hidden));
@@ -116,8 +121,10 @@
             holdings.length === months.length && (holdings.some(Number.isFinite) || Number.isFinite(earlier?.tonnes)))) {
         throw new Error("Invalid gold reserve series");
       }
-      const ranked = countries.map((country) => summarize(country, months, benchmark)).sort((a, b) => b.latest - a.latest);
-      const groups = ranked.map((country, i) => countryRows(country, i + 1, months, benchmark));
+      const ranked = countries.map((country) => summarize(country, months, benchmark))
+        .sort((a, b) => b.latest - a.latest).slice(0, 20);
+      const showCountryOnCharts = createReserveComparison(ranked, months.slice(1), { tonnes, deltaTonnes });
+      const groups = ranked.map((country, i) => countryRows(country, i + 1, months, benchmark, showCountryOnCharts));
       table.append(...groups);
 
       function showTop(button) {
@@ -132,6 +139,7 @@
       showTop(buttons[0]);
       range.hidden = false;
       byId("reserves-table-wrap").hidden = false;
+      if (window.location.hash === "#reserves-comparison") byId("reserves-comparison").scrollIntoView();
     } catch {
       status.textContent = "黄金储备数据暂时无法加载。";
     }
