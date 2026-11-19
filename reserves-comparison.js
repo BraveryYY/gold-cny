@@ -1,6 +1,6 @@
 "use strict";
 
-function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, deltaTonnes }) {
+function showReserveDashboard(countries, { tonnes, deltaTonnes }) {
   const section = byId("reserves-comparison");
   const countryPicker = byId("reserves-country-picker");
   const quickOptions = byId("reserves-quick-options");
@@ -8,9 +8,7 @@ function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, d
   const monthlyDetails = byId("reserves-month-details");
   const monthSelect = byId("reserves-chart-month");
   const monthBody = byId("reserves-chart-reading");
-  const months = reportMonths.slice(1);
-  const benchmark = reportPrices.slice(1);
-  const ranked = countries.map((country, i) => ({ ...country, rank: i + 1, holdings: country.holdings.slice(1) }));
+  const ranked = countries.map((country, i) => ({ ...country, rank: i + 1 }));
   const charts = [
     { canvas: byId("reserves-stock-chart"), kind: "holdings", geometry: null },
     { canvas: byId("reserves-change-chart"), kind: "change", geometry: null },
@@ -23,12 +21,15 @@ function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, d
   }
 
   function showOverview() {
+    const { months } = current;
+    const coverage = current.holdings.some(Number.isFinite) ? "月度数据" : "区间内暂无储备量";
+    byId("reserves-period").textContent = `${months[0]} 至 ${months.at(-1)} · ${coverage}`;
     byId("reserves-current-country").textContent = `${current.name}官方黄金储备`;
     byId("reserves-stock-value").textContent = display(current.latest, tonnes);
     byId("reserves-stock-note").textContent = `第 ${current.rank} 名 · ${current.latestMonth} 报告`;
     byId("reserves-net-value").textContent = display(current.net, deltaTonnes);
     byId("reserves-net-note").textContent = Number.isFinite(current.net)
-      ? `相对 ${reportMonths[0]} 月末` : "缺少起止月数据";
+      ? `相对 ${current.baseline} 月末` : "缺少起止月数据";
     byId("reserves-estimate-value").textContent = display(current.estimate, currencyFormat);
     byId("reserves-estimate-note").textContent = Number.isFinite(current.estimate)
       ? `市场价估算 · ${current.observedMonths} 个可比月`
@@ -37,6 +38,7 @@ function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, d
 
   function drawCharts() {
     const activeIndex = Number(monthSelect.value);
+    const { months } = current;
     for (const chart of charts) {
       const values = current[chart.kind].map((value) => Number.isFinite(value) ? Math.round(value * 100) / 100 : null);
       chart.geometry = drawReserveChart(chart.canvas, { months, values, kind: chart.kind, activeIndex });
@@ -54,6 +56,7 @@ function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, d
   }
 
   function showMonthlyTable() {
+    const { months, benchmark } = current;
     monthBody.replaceChildren();
     for (let index = months.length - 1; index >= 0; index--) {
       const row = monthBody.insertRow();
@@ -105,12 +108,12 @@ function showReserveDashboard(countries, reportMonths, reportPrices, { tonnes, d
   function showCountry() {
     for (const { button, country } of quickChoices) button.setAttribute("aria-pressed", String(country === current));
     for (const { button, country } of rankChoices) button.setAttribute("aria-current", String(country === current));
+    monthSelect.replaceChildren(...current.months.map((month, index) => new Option(month, String(index))));
+    monthSelect.value = String(current.months.length - 1);
     showOverview();
     showMonthlyTable();
   }
 
-  monthSelect.replaceChildren(...months.map((month, index) => new Option(month, String(index))));
-  monthSelect.value = String(months.length - 1);
   monthSelect.addEventListener("change", showMonth);
   const observer = new ResizeObserver(drawCharts);
   for (const chart of charts) {
