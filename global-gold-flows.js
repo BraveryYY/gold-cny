@@ -7,10 +7,13 @@
   const canvas = byId("global-gold-chart");
   const selectedMonth = byId("global-gold-month");
   const status = byId("global-gold-status");
+  const netFormat = new Intl.NumberFormat("zh-CN", {
+    minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero",
+  });
 
   async function loadGlobalGoldFlows() {
     try {
-      const { months: rows } = await getJson(dataUrl, { cache: "no-cache" });
+      const { months: rows, updatedAt } = await getJson(dataUrl, { cache: "no-cache" });
       if (!Array.isArray(rows) || !rows.length || rows.length > 12 || !rows.every(({ month, purchases, sales, reporters }) =>
         /^\d{4}-(0[1-9]|1[0-2])$/.test(month) && Array.isArray(reporters) &&
         (reporters.length ? [purchases, sales].every((value) => Number.isFinite(value) && value >= 0) : purchases === null && sales === null))) {
@@ -29,6 +32,7 @@
         const { purchases, sales, reporters } = rows[Number(selectedMonth.value)];
         byId("global-gold-purchases").textContent = purchases === null ? "—" : currencyFormat.format(purchases);
         byId("global-gold-sales").textContent = sales === null ? "—" : currencyFormat.format(sales);
+        byId("global-gold-net").textContent = purchases === null || sales === null ? "—" : netFormat.format(purchases - sales);
         byId("global-gold-reporters").textContent = reporters.length;
         draw();
       }
@@ -43,6 +47,13 @@
         showMonth();
       });
       byId("global-gold-period").textContent = `${months[0]} 至 ${months.at(-1)} · 已报告储备变动`;
+      const updateTime = Date.parse(updatedAt);
+      if (Number.isFinite(updateTime)) {
+        const time = byId("global-gold-updated-at");
+        time.dateTime = new Date(updateTime).toISOString();
+        time.textContent = quoteTimeFormat.format(updateTime);
+        byId("global-gold-update").hidden = false;
+      }
       byId("global-gold-results").hidden = false;
       byId("global-gold-controls").hidden = false;
       status.hidden = true;

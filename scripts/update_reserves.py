@@ -2,7 +2,7 @@
 
 import argparse
 import csv
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 import io
 import json
 import math
@@ -125,6 +125,7 @@ def merge_reserves(snapshot, reports, first, last):
 
 def merge_flows(snapshot, reports, first, last):
     by_month = {row["month"]: row for row in snapshot["months"]}
+    verified = False
     for month in month_range(shift_month(first, 1), last):
         previous = shift_month(month, -1)
         changes = {
@@ -134,6 +135,7 @@ def merge_flows(snapshot, reports, first, last):
         }
         if not changes or not set(by_month.get(month, {}).get("reporters", [])) <= changes.keys():
             continue
+        verified = True
         by_month[month] = {
             "month": month,
             "purchases": round(sum(value for value in changes.values() if value > 0), 4),
@@ -141,8 +143,11 @@ def merge_flows(snapshot, reports, first, last):
             "reporters": sorted(changes),
         }
     latest = max(by_month)
-    snapshot["months"] = [by_month.get(month, {"month": month, "purchases": None, "sales": None, "reporters": []})
-                          for month in month_range(shift_month(latest, 1 - MONTHS_IN_YEAR), latest)]
+    months = [by_month.get(month, {"month": month, "purchases": None, "sales": None, "reporters": []})
+              for month in month_range(shift_month(latest, 1 - MONTHS_IN_YEAR), latest)]
+    if verified and (months != snapshot["months"] or not snapshot.get("updatedAt")):
+        snapshot["months"] = months
+        snapshot["updatedAt"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def load_json(path):

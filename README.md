@@ -25,7 +25,7 @@ python3 -m http.server 8000
 - [NIST](https://www.nist.gov/pml/owm/metric-si/unit-conversion/precious-metals-conversion-information) 提供金衡盎司换算依据。人民币金价（元／克）＝美元金价 × 美元兑人民币汇率 ÷ 31.1034768。
 - [`central-bank-reserves.json`](central-bank-reserves.json) 的官方黄金数量主要取自 [IMF 国际流动性数据库](https://data.imf.org/en/datasets/IMF.STA:IL)的 `RGV_REVS.FTO.M`。俄罗斯、奥地利、法国、意大利、荷兰和西班牙使用 [IMF 储备数据库](https://data.imf.org/Datasets/IRFCL)的 `IRFCLDT1_IRFCL56V_FTO.S1XS1311.M`。中国取自[国家外汇管理局](https://www.safe.gov.cn/safe/2026/0206/27116.html)，其他补充来源列在网页「购金价格估算与数据来源」中。金衡盎司折算为公吨，缺报月留空。各国按最后有效储备量排名并标注报告月。市场金价使用[世界银行 Pink Sheet](https://www.worldbank.org/en/research/commodity-markets)和[美联储 EXCHUS](https://fred.stlouisfed.org/series/EXCHUS)的月均值折算为人民币元／克。
 - 月度补数时，`months`、`benchmark` 和每国的 `holdings` 按月份对齐。缺报储备量或暂未公布的市场基准用 `null`，新数据可补齐旧缺口。同一月份已有核实值继续保留。若增持月缺少市场基准，先展示储备和已报告月份，参考均价待基准补齐。
-- [`global-gold-flows.json`](global-gold-flows.json) 从 IMF 国际流动性实物黄金序列汇总已报告经济体的月末储备环比变化，按正、负变化分别求和，负向合计以正的吨数存储。地区及机构汇总序列不纳入，近月有更多报告时补齐覆盖。
+- [`global-gold-flows.json`](global-gold-flows.json) 从 IMF 国际流动性实物黄金序列汇总已报告经济体的月末储备环比变化，按正、负变化分别求和，负向合计以正的吨数存储。净增持量按两侧原始值相减后四舍五入。地区及机构汇总序列不纳入，近月有更多报告时补齐覆盖。网页将快照首次核实或后续变动的 `updatedAt` 换算为北京时间。
 
 ## 发布方式
 

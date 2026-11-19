@@ -13,7 +13,7 @@
   <script src="./reserves-charts.js?v=20261119-global" defer></script>
   <script src="./reserves-comparison.js?v=20261119-oct" defer></script>
   <script src="./reserves.js?v=20261119-monthly" defer></script>
-  <script src="./global-gold-flows.js" defer></script>
+  <script src="./global-gold-flows.js?v=20261119-net" defer></script>
   <script src="./guide.js" defer></script>
 </head>
 <body>
@@ -282,6 +282,7 @@
           <div>
             <h3 id="global-gold-heading">全球央行购入与卖出参考</h3>
             <p class="history-range" id="global-gold-period">过去 12 个月 · 已报告储备变动</p>
+            <p class="history-range" id="global-gold-update" hidden>数据最近更新 <time id="global-gold-updated-at"></time>（北京时间）</p>
           </div>
           <div class="reserves-month-control" id="global-gold-controls" hidden>
             <label for="global-gold-month">查看月份</label>
@@ -293,6 +294,7 @@
           <dl class="global-gold-stats" aria-live="polite">
             <div><dt class="global-gold-legend">购入侧（净增持）</dt><dd><strong id="global-gold-purchases"></strong> 吨</dd></div>
             <div><dt class="global-gold-legend global-gold-sales">卖出侧（净减持）</dt><dd><strong id="global-gold-sales"></strong> 吨</dd></div>
+            <div><dt title="增持合计减去减持合计，最后四舍五入">当月净增持量</dt><dd><strong id="global-gold-net"></strong> 吨</dd></div>
             <div><dt>报告覆盖</dt><dd><strong id="global-gold-reporters"></strong> 个经济体</dd></div>
           </dl>
           <figure class="reserves-chart-frame reserves-chart-figure">
