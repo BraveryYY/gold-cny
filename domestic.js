@@ -6,6 +6,7 @@
     : "./domestic-quotes.json";
   const readTime = byId("domestic-read-time");
   const refreshNote = byId("domestic-refresh-note");
+  const archive = byId("domestic-quote-archive");
   const priceFormat = new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 });
   const readTimeFormat = new Intl.DateTimeFormat("zh-CN", {
     timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit",
@@ -45,7 +46,7 @@
   }
 
   async function readDomesticQuotes() {
-    if (reading) return;
+    if (!archive.open || reading) return;
     reading = true;
     refreshNote.hidden = true;
     try {
@@ -63,6 +64,6 @@
     }
   }
 
+  archive.addEventListener("toggle", readDomesticQuotes);
   refreshButton.addEventListener("click", readDomesticQuotes);
-  readDomesticQuotes();
 }

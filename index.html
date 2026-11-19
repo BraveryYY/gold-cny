@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#151512">
   <meta name="description" content="根据现货黄金美元报价与美元兑人民币汇率，换算人民币每克参考金价。">
   <title>黄金换算 · 国际金价转人民币</title>
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=20261119-official-quotes">
   <script src="./app.js" defer></script>
   <script src="./history.js" defer></script>
-  <script src="./domestic.js?v=20261119-snapshot" defer></script>
+  <script src="./domestic.js?v=20261119-official-quotes" defer></script>
   <script src="./reserves-charts.js?v=20261119-global" defer></script>
   <script src="./reserves-comparison.js?v=20261119-oct" defer></script>
   <script src="./reserves.js?v=20261119-monthly" defer></script>
@@ -156,56 +156,80 @@
     <section class="panel domestic-gold" id="domestic-gold" aria-labelledby="domestic-gold-heading">
       <div class="domestic-gold-heading">
         <h2 id="domestic-gold-heading">国内金价对照</h2>
-        <p role="status">手动核实报价 · 北京时间<span hidden> · 快照读取 <time id="domestic-read-time"></time></span></p>
       </div>
-      <p class="domestic-note">刷新会重新读取本站快照。最新报价请打开各卡片的来源链接。</p>
-      <p class="domestic-note domestic-refresh-note" id="domestic-refresh-note" role="status" hidden></p>
-      <div class="domestic-grid">
-        <article class="domestic-quote" aria-labelledby="sge-gold-heading">
-          <h3 id="sge-gold-heading">上金所 Au99.99</h3>
-          <p class="domestic-kind">日行情收盘价</p>
-          <p class="domestic-price"><strong id="sge-price">—</strong> <span>元 / 克</span></p>
-          <dl class="domestic-details">
-            <div><dt>交易日</dt><dd><time id="sge-trade-date">—</time></dd></div>
-          </dl>
-          <p class="domestic-source"><a href="https://www.sge.com.cn/sjzx/quotation_daily_new" target="_blank" rel="noopener noreferrer">上海黄金交易所最新日行情 <span aria-hidden="true">↗</span></a></p>
-        </article>
-
-        <article class="domestic-quote" aria-labelledby="waterbei-gold-heading">
-          <h3 id="waterbei-gold-heading">水贝金条</h3>
-          <p class="domestic-kind">商户挂牌价 · 含税</p>
-          <p class="domestic-price"><strong id="waterbei-price">—</strong> <span>元 / 克</span></p>
-          <dl class="domestic-details">
-            <div><dt>不含税价</dt><dd><span id="waterbei-net-price">—</span> 元 / 克</dd></div>
-            <div><dt>工费</dt><dd>两种口径均另计 <span class="domestic-amount"><span id="waterbei-fee">—</span> 元 / 克</span></dd></div>
-            <div><dt>报价时间</dt><dd><time id="waterbei-quote-time">—</time></dd></div>
-          </dl>
-          <p class="domestic-source"><a href="https://www.guijinshu.com/plugin.php?id=study_dz_goldapi" target="_blank" rel="noopener noreferrer">水贝贵金属网报价 <span aria-hidden="true">↗</span></a></p>
-        </article>
-
-        <article class="domestic-quote" aria-labelledby="ccb-gold-heading">
-          <h3 id="ccb-gold-heading">建设银行</h3>
-          <p class="domestic-kind">主动积存参考买入价</p>
-          <p class="domestic-price"><strong id="ccb-price">—</strong> <span>元 / 克</span></p>
-          <dl class="domestic-details">
-            <div><dt>报价时间</dt><dd><time id="ccb-quote-time">—</time></dd></div>
-          </dl>
-          <p class="domestic-note">成交以交易时报价为准。</p>
-          <p class="domestic-source"><a href="https://www.ccb.com/chn/home/gold_new/cpjs/index.shtml" target="_blank" rel="noopener noreferrer">建设银行黄金积存行情 <span aria-hidden="true">↗</span></a></p>
-        </article>
-
-        <article class="domestic-quote" aria-labelledby="icbc-gold-heading">
-          <h3 id="icbc-gold-heading">工商银行</h3>
+      <div class="domestic-grid" id="domestic-quote-links">
+        <a class="domestic-quote domestic-entry" href="https://www.sge.com.cn/sjzx/yshqbg" target="_blank" rel="noopener noreferrer">
+          <h3>上金所 Au99.99</h3>
+          <p class="domestic-kind">延时现货行情</p>
+          <span class="domestic-entry-action">查看延时行情 <span aria-hidden="true">↗</span></span>
+        </a>
+        <a class="domestic-quote domestic-entry" href="https://www.guijinshu.com/plugin.php?id=study_dz_goldapi" target="_blank" rel="noopener noreferrer">
+          <h3>水贝金条</h3>
+          <p class="domestic-kind">商户含税与不含税挂牌价，工费另计</p>
+          <span class="domestic-entry-action">查看挂牌价 <span aria-hidden="true">↗</span></span>
+        </a>
+        <a class="domestic-quote domestic-entry" href="https://www.ccb.com/chn/home/gold_new/cpjs/index.shtml" target="_blank" rel="noopener noreferrer">
+          <h3>建设银行</h3>
+          <p class="domestic-kind">黄金积存 · 主动积存价与赎回价</p>
+          <span class="domestic-entry-action">查看积存价 <span aria-hidden="true">↗</span></span>
+        </a>
+        <a class="domestic-quote domestic-entry" href="https://mybank.icbc.com.cn/icbc/newperbank/perbank3/gold/goldaccrual_query_out.jsp" target="_blank" rel="noopener noreferrer">
+          <h3>工商银行</h3>
           <p class="domestic-kind">积存金 · 主动积存参考买入价</p>
-          <p class="domestic-price"><strong id="icbc-price">—</strong> <span>元 / 克</span></p>
-          <dl class="domestic-details">
-            <div><dt>报价日期</dt><dd><time id="icbc-quote-date">—</time></dd></div>
-            <div><dt>页面时间</dt><dd><time id="icbc-page-time">—</time></dd></div>
-          </dl>
-          <p class="domestic-note">页面时间取自工行官网的更新时间。</p>
-          <p class="domestic-source"><a href="https://mybank.icbc.com.cn/icbc/newperbank/perbank3/gold/goldaccrual_query_out.jsp" target="_blank" rel="noopener noreferrer">工商银行积存金行情 <span aria-hidden="true">↗</span></a></p>
-        </article>
+          <span class="domestic-entry-action">查看积存价 <span aria-hidden="true">↗</span></span>
+        </a>
       </div>
+      <details class="domestic-archive" id="domestic-quote-archive">
+        <summary id="domestic-archive-title">历史报价快照</summary>
+        <p class="domestic-note" role="status">手动核实报价 · 北京时间<span hidden> · 快照读取 <time id="domestic-read-time"></time></span></p>
+        <p class="domestic-note domestic-refresh-note" id="domestic-refresh-note" role="status" hidden></p>
+        <div class="domestic-grid">
+          <article class="domestic-quote" aria-labelledby="sge-gold-heading">
+            <h3 id="sge-gold-heading">上金所 Au99.99</h3>
+            <p class="domestic-kind">日行情收盘价</p>
+            <p class="domestic-price"><strong id="sge-price">—</strong> <span>元 / 克</span></p>
+            <dl class="domestic-details">
+              <div><dt>交易日</dt><dd><time id="sge-trade-date">—</time></dd></div>
+            </dl>
+            <p class="domestic-source"><a href="https://www.sge.com.cn/sjzx/quotation_daily_new" target="_blank" rel="noopener noreferrer">上海黄金交易所最新日行情 <span aria-hidden="true">↗</span></a></p>
+          </article>
+
+          <article class="domestic-quote" aria-labelledby="waterbei-gold-heading">
+            <h3 id="waterbei-gold-heading">水贝金条</h3>
+            <p class="domestic-kind">商户挂牌价 · 含税</p>
+            <p class="domestic-price"><strong id="waterbei-price">—</strong> <span>元 / 克</span></p>
+            <dl class="domestic-details">
+              <div><dt>不含税价</dt><dd><span id="waterbei-net-price">—</span> 元 / 克</dd></div>
+              <div><dt>工费</dt><dd>两种口径均另计 <span class="domestic-amount"><span id="waterbei-fee">—</span> 元 / 克</span></dd></div>
+              <div><dt>报价时间</dt><dd><time id="waterbei-quote-time">—</time></dd></div>
+            </dl>
+            <p class="domestic-source"><a href="https://www.guijinshu.com/plugin.php?id=study_dz_goldapi" target="_blank" rel="noopener noreferrer">水贝贵金属网报价 <span aria-hidden="true">↗</span></a></p>
+          </article>
+
+          <article class="domestic-quote" aria-labelledby="ccb-gold-heading">
+            <h3 id="ccb-gold-heading">建设银行</h3>
+            <p class="domestic-kind">主动积存参考买入价</p>
+            <p class="domestic-price"><strong id="ccb-price">—</strong> <span>元 / 克</span></p>
+            <dl class="domestic-details">
+              <div><dt>报价时间</dt><dd><time id="ccb-quote-time">—</time></dd></div>
+            </dl>
+            <p class="domestic-note">成交以交易时报价为准。</p>
+            <p class="domestic-source"><a href="https://www.ccb.com/chn/home/gold_new/cpjs/index.shtml" target="_blank" rel="noopener noreferrer">建设银行黄金积存行情 <span aria-hidden="true">↗</span></a></p>
+          </article>
+
+          <article class="domestic-quote" aria-labelledby="icbc-gold-heading">
+            <h3 id="icbc-gold-heading">工商银行</h3>
+            <p class="domestic-kind">积存金 · 主动积存参考买入价</p>
+            <p class="domestic-price"><strong id="icbc-price">—</strong> <span>元 / 克</span></p>
+            <dl class="domestic-details">
+              <div><dt>报价日期</dt><dd><time id="icbc-quote-date">—</time></dd></div>
+              <div><dt>页面时间</dt><dd><time id="icbc-page-time">—</time></dd></div>
+            </dl>
+            <p class="domestic-note">页面时间取自工行官网的更新时间。</p>
+            <p class="domestic-source"><a href="https://mybank.icbc.com.cn/icbc/newperbank/perbank3/gold/goldaccrual_query_out.jsp" target="_blank" rel="noopener noreferrer">工商银行积存金行情 <span aria-hidden="true">↗</span></a></p>
+          </article>
+        </div>
+      </details>
     </section>
 
     <section class="panel reserves-panel" id="gold-reserves" aria-labelledby="reserves-heading">
