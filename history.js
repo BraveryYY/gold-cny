@@ -11,6 +11,9 @@
   const figure = byId("history-figure");
   const dateLabel = byId("history-date");
   const priceLabel = byId("history-price");
+  const pointMove = byId("history-point-move");
+  const pointMoveHeading = byId("history-point-move-heading");
+  const percentAxis = byId("history-percent-axis");
   const rangeLabel = byId("history-range");
   const message = byId("history-message");
   const status = byId("history-status");
@@ -42,6 +45,7 @@
   let availableToday = null;
   let loadingToday = false;
   let todayTimer;
+  let todayClose = null;
 
   function shortDate(date) {
     return date.slice(5).replace("-", "/");
@@ -164,8 +168,13 @@
     chart.height = Math.round(height * ratio);
     context.scale(ratio, ratio);
 
-    const plot = { left: 41, right: width - 18, top: 12, bottom: height - 29 };
     const scale = plotScale(history[lowest].value, history[highest].value);
+    const tickCount = Math.round((scale.top - scale.bottom) / scale.step);
+    const ticks = Array.from({ length: tickCount + 1 }, (_, index) => scale.bottom + index * scale.step);
+    const moveLabels = todayClose ? ticks.map((value) => percentFormat.format(moveFromClose(value))) : [];
+    context.font = "11px system-ui, sans-serif";
+    const rightPadding = Math.max(18, ...moveLabels.map((label) => context.measureText(label).width + 11));
+    const plot = { left: 41, right: width - rightPadding, top: 12, bottom: height - 29 };
     const start = activeDays ? history[0].time : beijingDay(history[0].time);
     const end = activeDays ? history.at(-1).time : Math.min(Date.now(), start + DAY - 1);
     const duration = Math.max(1, end - start);
@@ -174,21 +183,22 @@
     const locations = history.map(({ time, value }) => ({ x: xFor(time), y: yFor(value) }));
     chartLocations = locations;
 
-    context.font = "11px system-ui, sans-serif";
     context.fillStyle = "#b3ab9c";
     context.strokeStyle = "#433a2d";
-    context.textAlign = "right";
     context.textBaseline = "middle";
-    const tickCount = Math.round((scale.top - scale.bottom) / scale.step);
-    for (let tick = 0; tick <= tickCount; tick += 1) {
-      const value = scale.bottom + tick * scale.step;
+    ticks.forEach((value, index) => {
       const y = yFor(value);
+      context.textAlign = "right";
       context.fillText(axisFormat.format(value), plot.left - 8, y);
+      if (todayClose) {
+        context.textAlign = "left";
+        context.fillText(moveLabels[index], plot.right + 7, y);
+      }
       context.beginPath();
       context.moveTo(plot.left, y);
       context.lineTo(plot.right, y);
       context.stroke();
-    }
+    });
 
     const labelCount = width < 460 ? 4 : 6;
     context.textAlign = "center";
@@ -224,11 +234,18 @@
     drawExtremum(lowest, plot, false);
   }
 
+  function moveFromClose(value) {
+    return (value - todayClose.value) / todayClose.value;
+  }
+
   function select(index) {
     selected = index;
     const point = history[index];
     setPointTime(dateLabel, point);
     priceLabel.textContent = currencyFormat.format(point.value);
+    pointMove.hidden = !todayClose;
+    percentAxis.hidden = !todayClose;
+    if (todayClose) setSignedMove(pointMove.querySelector("strong"), moveFromClose(point.value), percentFormat);
     drawHistory();
   }
 
@@ -272,6 +289,7 @@
       const row = document.createElement("tr");
       row.insertCell().textContent = activeDays ? point.date : pointLabel(point);
       row.insertCell().textContent = currencyFormat.format(point.value);
+      if (!activeDays) row.insertCell().textContent = "—";
       fragment.append(row);
     }
     rows.replaceChildren(fragment);
@@ -284,6 +302,7 @@
 
   function showMessage(text, canRetry = false) {
     history = [];
+    todayClose = null;
     chartLocations = [];
     statistics.hidden = true;
     todayMeta.hidden = true;
@@ -317,7 +336,15 @@
     const latest = values.at(-1);
     todayQuoteTime.dateTime = new Date(latest.time).toISOString();
     todayQuoteTime.textContent = beijingTimeFormat.format(latest.time);
-    showDailyMove(todayDailyMove, latest.value, latest.time);
+    todayClose = null;
+    showDailyMove(todayDailyMove, latest.value, latest.time).then((previous) => {
+      if (!previous || activeDays || history !== values) return;
+      todayClose = previous;
+      values.forEach(({ value }, index) => {
+        rows.rows[index].cells[2].textContent = percentFormat.format(moveFromClose(value));
+      });
+      select(selected);
+    });
     todayRateDate.dateTime = rateDate;
     todayRateDate.textContent = rateDate;
     todayRefreshStatus.hidden = true;
@@ -336,12 +363,14 @@
 
   function chooseRange(days) {
     activeDays = days;
+    todayClose = null;
     heading.textContent = days ? `近 ${days} 天人民币金价` : "今日人民币金价";
     if (changeLabel) changeLabel.textContent = days ? "区间涨跌幅" : "盘中区间涨跌幅";
     byId("daily-source").hidden = !days;
     byId("today-source").hidden = Boolean(days);
     byId("history-detail-label").textContent = days ? "查看每日数据" : "查看今日数据";
     byId("history-time-heading").textContent = days ? "日期" : "时间（北京时间）";
+    pointMoveHeading.hidden = Boolean(days);
     rangeButtons.forEach((button) => {
       button.setAttribute("aria-pressed", String(Number(button.dataset.historyDays) === days));
     });

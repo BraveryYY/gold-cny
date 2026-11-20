@@ -29,6 +29,9 @@ const quoteTimeFormat = new Intl.DateTimeFormat("zh-CN", {
 const percentFormat = new Intl.NumberFormat("zh-CN", {
   style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero",
 });
+const signedAmountFormat = new Intl.NumberFormat("zh-CN", {
+  minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero",
+});
 const dailyMoveRequests = new WeakMap();
 let recentCloses;
 
@@ -134,6 +137,13 @@ function getRecentCloses() {
   return entry.request;
 }
 
+function setSignedMove(element, value, formatter) {
+  const parts = formatter.formatToParts(value);
+  element.textContent = parts.map((part) => part.value).join("");
+  const sign = parts.find(({ type }) => type === "plusSign" || type === "minusSign")?.type;
+  element.dataset.direction = sign === "plusSign" ? "up" : sign === "minusSign" ? "down" : "flat";
+}
+
 async function showDailyMove(display, price, timestamp) {
   if (!display) return;
   if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(timestamp)) {
@@ -145,9 +155,11 @@ async function showDailyMove(display, price, timestamp) {
   const request = Symbol();
   dailyMoveRequests.set(display, request);
   const value = display.querySelector("strong");
+  const amount = display.querySelector(".daily-move-amount");
   const basis = display.querySelector(".daily-move-basis");
   value.textContent = "—";
   delete value.dataset.direction;
+  if (amount) amount.hidden = true;
   basis.hidden = true;
   display.hidden = false;
   try {
@@ -159,15 +171,19 @@ async function showDailyMove(display, price, timestamp) {
       return date < quoteDate && weekday >= 1 && weekday <= 5;
     });
     if (!previous) return;
-    const change = (price - previous.value) / previous.value;
+    const difference = price - previous.value;
+    const change = difference / previous.value;
     if (!Number.isFinite(change)) return;
-    const roundedToZero = Math.abs(change) < 0.00005;
-    value.textContent = percentFormat.format(roundedToZero ? 0 : change);
-    value.dataset.direction = roundedToZero ? "flat" : change > 0 ? "up" : "down";
+    setSignedMove(value, change, percentFormat);
+    if (amount) {
+      setSignedMove(amount.querySelector("strong"), difference, signedAmountFormat);
+      amount.hidden = false;
+    }
     const day = basis.querySelector("time");
     day.dateTime = previous.date;
     day.textContent = previous.date;
     basis.hidden = false;
+    return previous;
   } catch {
     // The latest quote can still be displayed when its comparison close is unavailable.
   }
