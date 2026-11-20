@@ -1,8 +1,12 @@
 "use strict";
 
 const GRAMS_PER_TROY_OUNCE = 31.1034768;
+const DAY = 86_400_000;
+const BEIJING_OFFSET = 8 * 3_600_000;
 const GOLD_QUOTE = "https://api.gold-api.com/price/XAU";
 const USD_CNY_RATE = "https://api.frankfurter.dev/v2/rate/USD/CNY";
+const GOLD_HISTORY = "https://standardbullion.com/api/v1/market/history";
+const RATE_HISTORY = "https://api.frankfurter.dev/v2/rates";
 
 const byId = (id) => document.getElementById(id);
 const fields = [
@@ -10,6 +14,7 @@ const fields = [
   { input: byId("rate"), source: byId("rate-source"), label: "汇率", example: "示例汇率", kind: "example", revision: 0 },
 ];
 const priceOutput = byId("price-per-gram");
+const quoteDailyMove = byId("quote-daily-move");
 const statusDot = byId("status-dot");
 const quoteStatus = byId("quote-status");
 const refreshButton = byId("refresh");
@@ -21,6 +26,15 @@ const quoteTimeFormat = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit",
   hour: "2-digit", minute: "2-digit", hourCycle: "h23",
 });
+const percentFormat = new Intl.NumberFormat("zh-CN", {
+  style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero",
+});
+const dailyMoveRequests = new WeakMap();
+let recentCloses;
+
+function dateKey(time) {
+  return new Date(time).toISOString().slice(0, 10);
+}
 
 function readPositive(value) {
   const normalized = value.normalize("NFKC").trim();
@@ -55,6 +69,10 @@ function render() {
   const priceText = canConvert ? formatAmount(amount) : "–";
   if (priceOutput.value !== priceText) priceOutput.value = priceText;
   priceOutput.classList.toggle("is-long", priceText.length > 8);
+  const spotTime = fields[0].timestamp;
+  const currentMarketQuote = fields.every(({ kind }) => kind === "market") && Number.isFinite(spotTime) &&
+    dateKey(spotTime + BEIJING_OFFSET) === dateKey(Date.now() + BEIJING_OFFSET);
+  showDailyMove(quoteDailyMove, amount, currentMarketQuote ? spotTime : null);
 
   if (!canConvert) {
     setStatus(gold === null || rate === null ? "请输入有效的金价和汇率" : "换算结果超出计算范围", "invalid");
@@ -75,6 +93,84 @@ async function getJson(url, { cache = "default" } = {}) {
   const response = await fetch(url, { signal: AbortSignal.timeout(7000), credentials: "omit", cache });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json();
+}
+
+async function getDailyGoldPrices({ from, to }) {
+  const goldUrl = new URL(GOLD_HISTORY);
+  // The history API can omit its first requested day.
+  goldUrl.search = new URLSearchParams({ metal: "XAU", start_date: dateKey(Date.parse(from) - DAY), end_date: to });
+  const rateUrl = new URL(RATE_HISTORY);
+  rateUrl.search = new URLSearchParams({ base: "USD", quotes: "CNY", from, to });
+  const [gold, rates] = await Promise.all([getJson(goldUrl), getJson(rateUrl)]);
+  if (gold.metal !== "XAU" || gold.grain !== "daily" || gold.unit !== "USD per troy ounce" ||
+      !Array.isArray(gold.points) || !Array.isArray(rates)) {
+    throw new Error("Unexpected historical response");
+  }
+
+  const byDate = new Map(rates
+    .filter(({ base, quote, rate }) => base === "USD" && quote === "CNY" && Number.isFinite(rate) && rate > 0)
+    .map(({ date, rate }) => [date, rate]));
+  const values = new Map();
+  for (const { t, price } of gold.points) {
+    if (!/^\d{4}-\d{2}-\d{2}T00:00:00(?:\.0+)?Z$/.test(t) || !Number.isFinite(price) || price <= 0) continue;
+    const date = t.slice(0, 10);
+    const rate = byDate.get(date);
+    if (date < from || date > to || rate === undefined) continue;
+    values.set(date, { date, time: Date.parse(date), value: price * rate / GRAMS_PER_TROY_OUNCE });
+  }
+  return [...values.values()].sort((first, second) => first.time - second.time);
+}
+
+function getRecentCloses() {
+  const now = Date.now();
+  const to = dateKey(now - DAY);
+  if (recentCloses?.to === to && recentCloses.expiresAt > now) return recentCloses.request;
+  const entry = { to, expiresAt: now + 5 * 60_000 };
+  entry.request = getDailyGoldPrices({ from: dateKey(now - 14 * DAY), to }).catch((error) => {
+    if (recentCloses === entry) recentCloses = undefined;
+    throw error;
+  });
+  recentCloses = entry;
+  return entry.request;
+}
+
+async function showDailyMove(display, price, timestamp) {
+  if (!display) return;
+  if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(timestamp)) {
+    dailyMoveRequests.delete(display);
+    display.hidden = true;
+    return;
+  }
+
+  const request = Symbol();
+  dailyMoveRequests.set(display, request);
+  const value = display.querySelector("strong");
+  const basis = display.querySelector(".daily-move-basis");
+  value.textContent = "—";
+  delete value.dataset.direction;
+  basis.hidden = true;
+  display.hidden = false;
+  try {
+    const quoteDate = dateKey(timestamp);
+    const closes = await getRecentCloses();
+    if (dailyMoveRequests.get(display) !== request) return;
+    const previous = closes.findLast(({ date, time }) => {
+      const weekday = new Date(time).getUTCDay();
+      return date < quoteDate && weekday >= 1 && weekday <= 5;
+    });
+    if (!previous) return;
+    const change = (price - previous.value) / previous.value;
+    if (!Number.isFinite(change)) return;
+    const roundedToZero = Math.abs(change) < 0.00005;
+    value.textContent = percentFormat.format(roundedToZero ? 0 : change);
+    value.dataset.direction = roundedToZero ? "flat" : change > 0 ? "up" : "down";
+    const day = basis.querySelector("time");
+    day.dateTime = previous.date;
+    day.textContent = previous.date;
+    basis.hidden = false;
+  } catch {
+    // The latest quote can still be displayed when its comparison close is unavailable.
+  }
 }
 
 async function getGoldQuote() {

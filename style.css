@@ -99,6 +99,13 @@ h1 { font-size: clamp(32px, 4.6vw, 52px); line-height: 1.2; font-weight: 650; le
 .status-dot { flex: 0 0 7px; height: 7px; border-radius: 50%; background: #d6aa59; }
 .status-dot[data-state="market"] { background: #9cbf92; }
 .status-dot[data-state="invalid"] { background: #e5a490; }
+.daily-move { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 2px 7px; font-size: 12px; }
+.quote-daily-move { margin-top: 9px; color: #d0b995; }
+.daily-move strong { color: var(--paper); font-variant-numeric: tabular-nums; }
+.daily-move strong[data-direction="up"] { color: #f0a18e; }
+.daily-move strong[data-direction="down"] { color: #a1ce98; }
+.daily-move-basis { color: var(--muted); font-size: 11px; }
+.daily-move-basis a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
 .inputs-panel { margin-top: 18px; }
 .panel { border: 1px solid var(--border); border-radius: 13px; background: var(--panel); padding: 24px; min-width: 0; }

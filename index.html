@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#151512">
   <meta name="description" content="根据现货黄金美元报价与美元兑人民币汇率，换算人民币每克参考金价。">
   <title>黄金换算 · 国际金价转人民币</title>
-  <link rel="stylesheet" href="./style.css?v=20261119-official-quotes">
-  <script src="./app.js" defer></script>
-  <script src="./history.js" defer></script>
+  <link rel="stylesheet" href="./style.css?v=20261120-daily-move">
+  <script src="./app.js?v=20261120-daily-move" defer></script>
+  <script src="./history.js?v=20261120-daily-move" defer></script>
   <script src="./domestic.js?v=20261119-official-quotes" defer></script>
   <script src="./reserves-charts.js?v=20261119-global" defer></script>
   <script src="./reserves-comparison.js?v=20261119-oct" defer></script>
@@ -58,6 +58,11 @@
           <span class="status-dot" id="status-dot" aria-hidden="true"></span>
           <span id="quote-status" role="status">示例数据</span>
         </div>
+        <p class="daily-move quote-daily-move" id="quote-daily-move" role="status" hidden>
+          <span>单日涨跌幅</span>
+          <strong>—</strong>
+          <span class="daily-move-basis" hidden>较 <time></time> UTC 收盘 · <a href="https://standardbullion.com/gold-price-api" target="_blank" rel="noopener noreferrer">Data by Standard Bullion</a></span>
+        </p>
       </div>
     </section>
 
@@ -107,6 +112,11 @@
       </div>
       <div class="today-meta" id="today-meta" hidden>
         <span>最新报价 <time id="today-quote-time"></time>（北京时间）</span>
+        <span class="daily-move" id="today-daily-move" role="status" hidden>
+          <span>最新价单日涨跌幅</span>
+          <strong>—</strong>
+          <span class="daily-move-basis" hidden>较 <time></time> UTC 收盘</span>
+        </span>
         <span>参考汇率日期 <time id="today-rate-date"></time></span>
         <span id="today-refresh-status" role="status" hidden>暂未获取到更新，显示上次成功加载的数据。</span>
       </div>
@@ -120,7 +130,7 @@
           <dd><strong id="history-low"></strong> <span>元 / 克</span><time id="history-low-date"></time></dd>
         </div>
         <div>
-          <dt>区间涨跌幅</dt>
+          <dt id="history-change-label">盘中区间涨跌幅</dt>
           <dd><strong id="history-change"></strong><small id="history-change-dates"></small></dd>
         </div>
       </dl>
@@ -142,7 +152,7 @@
       <p class="history-source" id="today-source">
         盘中金价（15 分钟采样）<a href="https://standardbullion.com/gold-price-api" target="_blank" rel="noopener noreferrer">Data by Standard Bullion</a>
         <span> · </span>全图按同一日度美元兑人民币参考汇率折算 <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter</a>。
-        区间涨跌幅按首末有效报价计算。
+        盘中区间涨跌幅按首末有效报价计算。单日涨跌幅以最近一个有效交易日的 UTC 收盘价及其同日汇率为基准。
       </p>
       <details class="history-details" id="history-details" hidden>
         <summary id="history-detail-label">查看今日数据</summary>

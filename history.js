@@ -1,12 +1,8 @@
 "use strict";
 
 {
-  const DAY = 86_400_000;
   const HOUR = 3_600_000;
   const QUOTE_INTERVAL = 15 * 60_000;
-  const BEIJING_OFFSET = 8 * HOUR;
-  const GOLD_HISTORY = "https://standardbullion.com/api/v1/market/history";
-  const RATE_HISTORY = "https://api.frankfurter.dev/v2/rates";
   const rangeButtons = [...document.querySelectorAll("[data-history-days]")];
   const maxDays = Math.max(...rangeButtons.map((button) => Number(button.dataset.historyDays)));
   const heading = byId("history-heading");
@@ -23,17 +19,16 @@
   const rows = byId("history-rows");
   const todayMeta = byId("today-meta");
   const todayQuoteTime = byId("today-quote-time");
+  const todayDailyMove = byId("today-daily-move");
   const todayRateDate = byId("today-rate-date");
   const todayRefreshStatus = byId("today-refresh-status");
   const statistics = byId("history-stats");
+  const changeLabel = byId("history-change-label");
   const highDate = byId("history-high-date");
   const lowDate = byId("history-low-date");
   const axisFormat = new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 });
   const beijingTimeFormat = new Intl.DateTimeFormat("zh-CN", {
     timeZone: "Asia/Shanghai", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
-  });
-  const percentFormat = new Intl.NumberFormat("zh-CN", {
-    style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero",
   });
   let history = [];
   let chartLocations = [];
@@ -47,10 +42,6 @@
   let availableToday = null;
   let loadingToday = false;
   let todayTimer;
-
-  function dateKey(time) {
-    return new Date(time).toISOString().slice(0, 10);
-  }
 
   function shortDate(date) {
     return date.slice(5).replace("-", "/");
@@ -75,27 +66,6 @@
 
   function historyWindow(days) {
     return { from: dateKey(windowEnd - days * DAY), to: dateKey(windowEnd - DAY) };
-  }
-
-  function dailyValues(gold, rates, { from, to }) {
-    if (gold.metal !== "XAU" || gold.grain !== "daily" || gold.unit !== "USD per troy ounce" ||
-        !Array.isArray(gold.points) || !Array.isArray(rates)) {
-      throw new Error("Unexpected historical response");
-    }
-
-    const byDate = new Map(rates
-      .filter(({ base, quote, rate }) => base === "USD" && quote === "CNY" && Number.isFinite(rate) && rate > 0)
-      .map(({ date, rate }) => [date, rate]));
-
-    const values = new Map();
-    for (const { t, price } of gold.points) {
-      if (!/^\d{4}-\d{2}-\d{2}T00:00:00(?:\.0+)?Z$/.test(t) || !Number.isFinite(price) || price <= 0) continue;
-      const date = t.slice(0, 10);
-      const rate = byDate.get(date);
-      if (date < from || date > to || rate === undefined) continue;
-      values.set(date, { date, time: Date.parse(date), value: price * rate / GRAMS_PER_TROY_OUNCE });
-    }
-    return [...values.values()].sort((first, second) => first.time - second.time);
   }
 
   function intradayValues(gold, rate, start, end) {
@@ -347,6 +317,7 @@
     const latest = values.at(-1);
     todayQuoteTime.dateTime = new Date(latest.time).toISOString();
     todayQuoteTime.textContent = beijingTimeFormat.format(latest.time);
+    showDailyMove(todayDailyMove, latest.value, latest.time);
     todayRateDate.dateTime = rateDate;
     todayRateDate.textContent = rateDate;
     todayRefreshStatus.hidden = true;
@@ -366,6 +337,7 @@
   function chooseRange(days) {
     activeDays = days;
     heading.textContent = days ? `近 ${days} 天人民币金价` : "今日人民币金价";
+    if (changeLabel) changeLabel.textContent = days ? "区间涨跌幅" : "盘中区间涨跌幅";
     byId("daily-source").hidden = !days;
     byId("today-source").hidden = Boolean(days);
     byId("history-detail-label").textContent = days ? "查看每日数据" : "查看今日数据";
@@ -396,15 +368,8 @@
     rangeLabel.textContent = "日线参考价";
     showMessage("正在加载历史金价…");
     const windowDates = historyWindow(maxDays);
-    const { from, to } = windowDates;
-    const goldUrl = new URL(GOLD_HISTORY);
-    // Standard Bullion may omit the first requested day. Trim the extra day after fetching.
-    goldUrl.search = new URLSearchParams({ metal: "XAU", start_date: historyWindow(maxDays + 1).from, end_date: to });
-    const rateUrl = new URL(RATE_HISTORY);
-    rateUrl.search = new URLSearchParams({ base: "USD", quotes: "CNY", from, to });
     try {
-      const [gold, rates] = await Promise.all([getJson(goldUrl), getJson(rateUrl)]);
-      const values = dailyValues(gold, rates, windowDates);
+      const values = await getDailyGoldPrices(windowDates);
       if (values.length < 2) throw new Error("Too few historical quotes");
       availableHistory = values;
       if (activeDays) showSelectedRange();
