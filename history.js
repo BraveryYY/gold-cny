@@ -158,6 +158,10 @@
     }
   }
 
+  function closePriceLabel() {
+    return `前收价 ${currencyFormat.format(todayClose.value)} 元/克`;
+  }
+
   function drawCloseReference(plot, y) {
     context.save();
     context.strokeStyle = "#bca986";
@@ -170,6 +174,19 @@
     context.textAlign = "left";
     context.fillStyle = "#e4c898";
     context.fillText("0%", plot.right + 7, y);
+
+    const label = closePriceLabel();
+    const left = plot.left + 5;
+    const height = 16;
+    const above = y - height - 3;
+    const top = above >= plot.top ? above : y + 3;
+    const textWidth = Math.min(context.measureText(label).width, plot.right - left - 15);
+    if (textWidth > 0) {
+      context.fillStyle = "#30291e";
+      context.fillRect(left, top, textWidth + 10, height);
+      context.fillStyle = "#e4c898";
+      context.fillText(label, left + 5, top + height / 2, textWidth);
+    }
     context.restore();
   }
 
@@ -264,6 +281,7 @@
     priceLabel.textContent = currencyFormat.format(point.value);
     pointMove.hidden = !todayClose;
     percentAxis.hidden = !todayClose;
+    chart.ariaDescription = todayClose ? closePriceLabel() : null;
     if (todayClose) setSignedMove(pointMove.querySelector("strong"), moveFromClose(point.value), percentFormat);
     drawHistory();
   }
