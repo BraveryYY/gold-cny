@@ -158,6 +158,21 @@
     }
   }
 
+  function drawCloseReference(plot, y) {
+    context.save();
+    context.strokeStyle = "#bca986";
+    context.lineWidth = 1;
+    context.setLineDash([5, 4]);
+    context.beginPath();
+    context.moveTo(plot.left, y);
+    context.lineTo(plot.right, y);
+    context.stroke();
+    context.textAlign = "left";
+    context.fillStyle = "#e4c898";
+    context.fillText("0%", plot.right + 7, y);
+    context.restore();
+  }
+
   function drawHistory() {
     if (!context || !history.length) return;
     const { width, height } = chart.getBoundingClientRect();
@@ -168,7 +183,9 @@
     chart.height = Math.round(height * ratio);
     context.scale(ratio, ratio);
 
-    const scale = plotScale(history[lowest].value, history[highest].value);
+    const low = history[lowest].value;
+    const high = history[highest].value;
+    const scale = plotScale(Math.min(low, todayClose?.value ?? low), Math.max(high, todayClose?.value ?? high));
     const tickCount = Math.round((scale.top - scale.bottom) / scale.step);
     const ticks = Array.from({ length: tickCount + 1 }, (_, index) => scale.bottom + index * scale.step);
     const moveLabels = todayClose ? ticks.map((value) => percentFormat.format(moveFromClose(value))) : [];
@@ -180,6 +197,7 @@
     const duration = Math.max(1, end - start);
     const xFor = (time) => plot.left + (time - start) / duration * (plot.right - plot.left);
     const yFor = (value) => plot.bottom - (value - scale.bottom) / (scale.top - scale.bottom) * (plot.bottom - plot.top);
+    const referenceY = todayClose ? yFor(todayClose.value) : null;
     const locations = history.map(({ time, value }) => ({ x: xFor(time), y: yFor(value) }));
     chartLocations = locations;
 
@@ -190,7 +208,7 @@
       const y = yFor(value);
       context.textAlign = "right";
       context.fillText(axisFormat.format(value), plot.left - 8, y);
-      if (todayClose) {
+      if (referenceY !== null && Math.abs(y - referenceY) >= 12) {
         context.textAlign = "left";
         context.fillText(moveLabels[index], plot.right + 7, y);
       }
@@ -216,6 +234,7 @@
     }
 
     drawSeries(locations, plot);
+    if (referenceY !== null) drawCloseReference(plot, referenceY);
 
     const point = locations[selected];
     context.lineWidth = 1;

@@ -8,7 +8,7 @@
   <title>黄金换算 · 国际金价转人民币</title>
   <link rel="stylesheet" href="./style.css?v=20261120-point-move">
   <script src="./app.js?v=20261120-point-move" defer></script>
-  <script src="./history.js?v=20261120-point-move" defer></script>
+  <script src="./history.js?v=20261120-close-line" defer></script>
   <script src="./domestic.js?v=20261119-official-quotes" defer></script>
   <script src="./reserves-charts.js?v=20261119-global" defer></script>
   <script src="./reserves-comparison.js?v=20261119-oct" defer></script>
@@ -145,8 +145,8 @@
             <span class="history-point-move" id="history-point-move" hidden>涨跌幅 <strong class="move-number"></strong></span>
           </div>
         </div>
-        <p class="history-axis-unit history-percent-axis" id="history-percent-axis" hidden>右轴 · 较前收涨跌幅</p>
-        <canvas id="history-chart" role="img" aria-label="人民币参考金价折线图，点位价格和今日涨跌幅见数据表"></canvas>
+        <p class="history-axis-unit history-percent-axis" id="history-percent-axis" hidden>右轴 · 较前收涨跌幅，虚线为 0% 前收</p>
+        <canvas id="history-chart" role="img" aria-label="人民币参考金价折线图，今日走势含 0% 前收参考线，点位读数见数据表"></canvas>
       </figure>
       <p class="history-source" id="daily-source" hidden>
         金价日收盘（UTC）<a href="https://standardbullion.com/gold-price-api" target="_blank" rel="noopener noreferrer">Data by Standard Bullion</a>
